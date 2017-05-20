@@ -1,0 +1,3218 @@
+USE [HousingFinance]
+GO
+/****** Object:  StoredProcedure [dbo].[applicationCreateApplication]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROC [dbo].[applicationCreateApplication] 
+@loanType VARCHAR (50),
+@loanAmount FLOAT,
+@loanDuration INT,
+@loanID INT,
+@creationTime DATE
+
+AS
+INSERT INTO tbl_applications_Table VALUES (@loanType, @loanAmount, @loanDuration, @loanID, @creationTime);
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[applicationsSelectAll]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROC [dbo].[applicationsSelectAll]
+AS
+SELECT *  FROM tbl_applications
+
+
+
+
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[brancesSelectAll]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE proc [dbo].[brancesSelectAll]
+AS
+SELECT branch_code as Code, branch_name AS Name, branch_location AS Location, branch_phone_number AS Phone, branch_email AS Email,mailling_address AS MailAdress FROM tbl_branches WHERE status LIKE 'true'
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[branch_add_branch]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROC [dbo].[branch_add_branch]
+@branch_name VARCHAR(50),
+@branch_location VARCHAR(50),
+@branch_code VARCHAR(50) = NULL,
+@branch_phone_number VARCHAR(50),
+@branch_email VARCHAR(50)
+
+AS
+
+DECLARE @recordsFirtstCount INT;
+DECLARE @recordsSecondCount INT;
+
+DECLARE @result INT = 0;
+
+BEGIN
+
+SET @recordsFirtstCount = (SELECT COUNT (branchID) FROM tbl_branches);
+
+INSERT INTO tbl_branches
+(
+branch_name,
+branch_location,
+branch_code,
+branch_phone_number,
+branch_email,
+status
+)
+
+VALUES
+(
+@branch_name,
+@branch_location,
+@branch_code,
+@branch_phone_number,
+@branch_email,
+'true'
+)
+
+SET @recordsSecondCount = (SELECT COUNT (branchID) FROM tbl_branches);
+
+
+IF (@recordsFirtstCount + 1 ) = @recordsSecondCount
+SET @result = 1;
+ELSE
+SET @result = 0;
+
+SELECT @result AS result
+END
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[branch_delete_branch]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROC [dbo].[branch_delete_branch]
+@branchCode INT
+AS
+UPDATE tbl_branches SET status = 'false' WHERE branch_code = @branchCode
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[branch_select_branch]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROC [dbo].[branch_select_branch]
+@creteria VARCHAR (50),
+@searchTerm VARCHAR (50)
+AS
+IF (@creteria = 'branch_code')
+SELECT branch_name AS Name, branch_code AS Code, branch_location AS Location, branch_phone_number AS Phone, branch_email AS Email, mailling_address AS Mailing FROM tbl_branches WHERE branch_code = @searchTerm
+ELSE
+SELECT branch_name AS Name, branch_code AS Code, branch_location AS Location, branch_phone_number AS Phone, branch_email AS Email, mailling_address AS Mailing FROM tbl_branches WHERE branch_name = @searchTerm
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[branch_update_Branch]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE proc [dbo].[branch_update_Branch]
+@branchCode int,
+@branchName VARCHAR (50),
+@branchLocation VARCHAR (50),
+@branchEmail VARCHAR (50),
+@branchPhone VARCHAR (50),
+@mailingAddress VARCHAR (50)
+AS
+
+DECLARE @ID INT
+
+set @ID = (SELECT branchID FROM tbl_branches WHERE branch_code = @branchCode);
+UPDATE tbl_branches SET branch_name = @branchName, branch_location = @branchLocation, branch_code = @branchCode, branch_email = @branchEmail, branch_phone_number = @branchPhone, mailling_address = @mailingAddress WHERE branchID = @ID
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[creditAdminAllApplications]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+Create proc [dbo].[creditAdminAllApplications]
+@creditAdmin int
+AS
+SELECT applicationID AS ApplicationID, mlcId AS Mlc_ID, mlcName AS Mlc_Name, mlcApprovedDate AS Date_Approved, mlcReason AS Reason FROM tbl_Mlc_approvedApplications WHERE creditAdminID = @creditAdmin AND ApplicationStatus LIKE 'Approved'
+
+
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[creditAnalystAllapplications]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROC [dbo].[creditAnalystAllapplications]
+@csrID int
+AS
+SELECT TOP 5 applicationID AS ApplicationID, applicationEntries AS Applicants, creationtime AS Date_of_Creation FROM tbl_applications WHERE csrID = @csrID
+
+
+
+
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[creditAnalystApplicationApprove]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROC [dbo].[creditAnalystApplicationApprove]
+@applicationID int,
+@creditAnalystID int,
+@reason text,
+@date date,
+@choice varchar (50)
+AS
+DECLARE @supervisorID int;
+DECLARE @creditAnalystName varchar (50);
+SET @supervisorID = (SELECT supervisorID FROM tbl_users_CreditAnalysts WHERE creditAnalystID = @creditAnalystID);
+SET @creditAnalystName = (SELECT first_name FROM tbl_users WHERE userID = @creditAnalystID);
+
+INSERT INTO tbl_CreditAnalyst_approvedApplications (applicationID, creditAnalystID, creditAnalystApprovedDate, supervisorID, creditAnalystReason, applicationStatus, creditAnalystName)
+VALUES (@applicationID, @creditAnalystID, @date, @supervisorID, @reason, @choice, @creditAnalystName)
+
+DELETE FROM tbl_applications WHERE applicationID = @applicationID
+
+
+
+
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[creditAnalystApplicationCount]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROC [dbo].[creditAnalystApplicationCount]
+@csrID int
+AS
+DECLARE @applcationsCount varchar (50);
+SELECT COUNT (applicationID) AS applicationsCount from tbl_applications WHERE csrID = @csrID ;
+
+SELECT applicationID AS ApplicationID, applicationStatus AS Status, applicationEntries AS Entries, creationtime AS Date_of_Creation FROM tbl_applications WHERE csrID = @csrID;
+
+
+
+
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[creditAnalystApplicationSelect]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE Proc [dbo].[creditAnalystApplicationSelect]
+@csrID int,
+@applicationID int
+AS
+SELECT applicationID AS ApplicationID, applicationEntries AS Entries, creationtime AS Date_of_Creation FROM tbl_applications WHERE csrID = @csrID AND applicationID = @applicationID;
+
+
+
+
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[creditAnalystgetName]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROC [dbo].[creditAnalystgetName]
+@creditAnalystID int
+AS
+SELECT first_name FROM tbl_users WHERE userID = @creditAnalystID
+
+
+
+
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[creditAnalystGetSupervisor]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROC [dbo].[creditAnalystGetSupervisor]
+@creditAnalystID int
+AS
+DECLARE @supervisorID int;
+
+SET @supervisorID = (SELECT supervisorID from tbl_users_CreditAnalysts WHERE creditAnalystID = @creditAnalystID);
+
+SELECT first_name AS SupervisorName from tbl_users where userID = @supervisorID;
+
+
+
+
+
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[creditRiskAllapplications]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE  PROC [dbo].[creditRiskAllapplications]
+@creditRiskID int
+AS
+SELECT applicationID AS ApplicationID, supervisorID  AS Supervisor_ID, supervisorName AS supervisor_Name, supervisorApprovedDate AS Date_Approved, supervisorReason AS Reason FROM tbl_Supervisor_approvedApplications WHERE creditRiskID = @creditRiskID AND ApplicationStatus LIKE 'Approved'
+
+
+
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[creditRiskApplicationCount]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+Create proc [dbo].[creditRiskApplicationCount]
+@creditRiskID int
+AS
+ SELECT COUNT (applicationID)  AS applicationsCount from tbl_Supervisor_approvedApplications WHERE creditRiskID = @creditRiskID AND applicationStatus = 'Approved';
+
+
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[creditRiskApplicationSelect]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+Create PROC [dbo].[creditRiskApplicationSelect]
+@creditRiskID int,
+@applicationID int
+AS 
+SELECT applicationID AS ApplicationID, supervisorID AS Supervisor_ID, supervisorName AS Supervisor_Name, supervisorApprovedDate AS Date_Approved, supervisorReason AS Reason FROM tbl_Supervisor_approvedApplications WHERE creditRiskID = @creditRiskID AND applicationID = @applicationID
+
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[CreditRiskApprovedRejectApplication]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE proc [dbo].[CreditRiskApprovedRejectApplication]
+@applicationID int,
+@creditRiskID INT,
+@reason text,
+@date date,
+@choice varchar (50)
+AS 
+Declare @creditRiskName varchar (50),
+@mlcID int
+
+
+Set @mlcID=(select mlcID from tbl_users_CreditRisk where creditRiskID=@creditRiskID)
+set @creditRiskName =(select first_name FROM tbl_users WHERE userID=@creditRiskID)
+INSERT INTO tbl_creditRisk_approvedApplications(applicationID,mlcID,creditRiskID,creditRiskApprovedDate,ApplicationStatus,creditRiskReason,creditRiskName)
+VALUES(@applicationID,@mlcID,@creditRiskID,@date,@choice,@reason,@creditRiskName)
+
+DELETE FROM tbl_Supervisor_approvedApplications WHERE applicationID = @applicationID
+
+
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[CreditRiskGetMlc]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+Create proc [dbo].[CreditRiskGetMlc]
+@creditRiskID int
+AS
+Declare @mlcID int
+
+
+SET @mlcID=(SELECT mlcID FROM tbl_users_CreditRisk WHERE creditRiskID=@creditRiskID)
+
+
+(SELECT first_name AS Mlc_Name from tbl_users WHERE userID=@mlcID)
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[customer_insert]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROC [dbo].[customer_insert]
+           @leadID int,
+           @firstName varchar(50),
+           @middleName varchar(50),
+           @lastName varchar(50),
+           @sex varchar(50),
+		   @maritalstatus varchar(50),
+           @id_passport int,
+           @Y_O_B date,
+           @address varchar(50),
+           @N_O_D int,
+           @nationality varchar(50),
+           @LoanRequired float,
+           @savingDeposit_account varchar(50),
+           @time_at_premises_years int,
+           @time_at_premises_months int,
+           @loan_duration int,
+           @loan_purpose text,
+           @owned_outright varchar(50),
+           @owned_Mortgage varchar(50),
+           @rented varchar(50),
+           @city_town varchar(50),
+           @land_registration_number varchar(50),
+           @tel_no varchar(50),
+           @email varchar(50)
+		AS
+		BEGIN TRANSACTION
+		INSERT INTO tbl_customers
+		   (leadID,
+           firstName,
+           middleName,
+           lastName,
+           sex,
+		   maritalstatus,
+           id_passport,
+           Y_O_B,
+           address,
+           N_O_D,
+           nationality,
+           LoanRequired,
+           savingDeposit_account,
+           time_at_premises_years,
+           time_at_premises_months,
+           loan_duration,
+           loan_purpose,
+           owned_outright,
+           owned_Mortgage,
+           rented,
+           city_town,
+           land_registration_number,
+           tel_no,
+           email)
+     VALUES
+           (@leadID, 
+           @firstName,
+           @middleName,
+           @lastName, 
+           @sex, 
+		   @maritalstatus,
+           @id_passport,
+           @Y_O_B,
+           @address,
+           @N_O_D, 
+           @nationality, 
+           @LoanRequired, 
+           @savingDeposit_account, 
+           @time_at_premises_years, 
+           @time_at_premises_months, 
+           @loan_duration,
+           @loan_purpose, 
+           @owned_outright,
+           @owned_Mortgage,
+           @rented, 
+           @city_town,
+           @land_registration_number, 
+           @tel_no,
+           @email)
+	IF @@error <> 0       
+	BEGIN      
+	ROLLBACK TRANSACTION      
+	RETURN      
+	END    
+	COMMIT TRANSACTION
+
+
+
+
+
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[customerAddIndividualCustomer]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[customerAddIndividualCustomer]
+@surname VARCHAR (50),
+@firstname VARCHAR (50),
+@middlename VARCHAR (50),
+
+@DOB VARCHAR (50),
+@idpass VARCHAR (50),
+@Gender VARCHAR (50),
+@maritalStatus VARCHAR (50),
+
+@Moblie VARCHAR (50),
+@Email VARCHAR (50),
+@Address VARCHAR (50),
+
+@Nationality VARCHAR (50),
+@date VARCHAR (50),
+@branchName VARCHAR (50),
+@userID VARCHAR (50)
+
+AS
+DECLARE @recordsFirtstCount INT;
+DECLARE @recordsSecondCount INT;
+DECLARE @result INT = 0;
+DECLARE @branchcode INT = 0;
+
+SET @branchcode = (SELECT branchID FROM tbl_branches WHERE branch_name LIKE @branchName);
+
+SET @recordsFirtstCount = (SELECT COUNT (customerID) FROM tbl_customerIndividualTable);
+
+INSERT INTO tbl_customer_Timestamp VALUES (@idpass, @userID, 'Entry Record', @date, '', '');
+
+INSERT INTO tbl_customerIndividualTable (surName, firstName, middleName, dob, idpassport, gender, maritalstatus, mobile, email, address, nationality, creationDate, branchcode, timeStampID, blackList) VALUES (@surname, @firstname, @middlename, @DOB, @idpass, @Gender, @maritalStatus, @Moblie, @Email, @Address, @Nationality, @date, @branchcode, @idpass, 'false');
+
+SET @recordsSecondCount = (SELECT COUNT (customerID) FROM tbl_customerIndividualTable);
+
+IF (@recordsFirtstCount + 1 ) = @recordsSecondCount
+SET @result = 1;
+ELSE
+SET @result = 0;
+
+SELECT @result AS result
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[customerCorporateAddCorporate]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[customerCorporateAddCorporate]
+@name VARCHAR (50),
+@DOR VARCHAR (50),
+@NOB VARCHAR (50),
+
+@telephone VARCHAR (50),
+@regNo VARCHAR (50),
+@COI VARCHAR (50),
+@registeresOffice VARCHAR (50),
+
+@physicalAddress VARCHAR (50),
+@boxAddress VARCHAR (50),
+@email VARCHAR (50),
+
+@directorOne VARCHAR (50),
+@directorTwo VARCHAR (50),
+@directorThree VARCHAR (50)
+AS
+DECLARE @recordsFirtstCount INT;
+DECLARE @recordsSecondCount INT;
+DECLARE @result INT = 0;
+
+SET @recordsFirtstCount = (SELECT COUNT (registrationnumber) FROM tbl_customerCorporateTable);
+
+INSERT INTO tbl_customerCorporateTable (name, dateofregistration, natureofbusiness, telephone, registrationnumber, coi, registeredoffice, physicaladdress, boxaddress, email, directorOne, directorTwo, directorThree) VALUES (@name, @DOR, @NOB, @telephone, @regNo, @COI, @registeresOffice, @physicalAddress, @boxAddress, @email, @directorOne, @directorTwo, @directorThree);
+
+SET @recordsSecondCount = (SELECT COUNT (registrationnumber) FROM tbl_customerCorporateTable);
+
+IF (@recordsFirtstCount + 1 ) = @recordsSecondCount
+SET @result = 1;
+ELSE
+SET @result = 0;
+
+SELECT @result AS result
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[customerCorporateSelectCorporate]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROC [dbo].[customerCorporateSelectCorporate]
+@id VARCHAR (50)
+AS
+SELECT name AS Name, registrationnumber AS ID, registeredoffice AS RegOffice, natureofbusiness AS Nature, telephone AS Telephone, coi AS Country, physicaladdress AS Physical, boxaddress AS Address, email AS Email, website AS Website, directorOne AS DirOne, directorTwo AS DirTwo, directorThree AS DirThree FROM tbl_customerCorporateTable WHERE registrationnumber LIKE @id
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[customerDeleteCustomer]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROC [dbo].[customerDeleteCustomer] 
+@id VARCHAR (50)
+AS
+DELETE FROM tbl_customersTable WHERE idpassport = @id
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[customers_IndividualsSelectAll]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROC [dbo].[customers_IndividualsSelectAll]
+AS
+
+DECLARE @userID INT = 0;
+DECLARE @count INT = 0;
+DECLARE @departmentcode INT = 0;
+DECLARE @departmentname VARCHAR (50);
+
+DECLARE @userIDX INT = 0;
+DECLARE @surname VARCHAR (50);
+DECLARE @middlename VARCHAR (50);
+DECLARE @fristname VARCHAR (50);
+DECLARE @email VARCHAR (50);
+DECLARE @address VARCHAR (50);
+
+
+DECLARE @ListofAllusers TABLE(IDs int, tempsurname VARCHAR (50), tempmiddlename VARCHAR (50), tempfirstname VARCHAR (50), tempdepartmentname VARCHAR (50), tempemail VARCHAR (50), tempaddress VARCHAR (50));
+
+SET @count = (SELECT COUNT (id) FROM tbl_users_Table);
+
+WHILE @count > 0 BEGIN
+
+SET @userID = (SELECT TOP 1 id FROM tbl_users_Table WHERE id > @userID ORDER BY id ASC);
+
+SET @departmentcode = (SELECT departmentcode FROM tbl_users_Table WHERE id = @userID);
+
+SET @departmentname = (SELECT department_name FROM tbl_departments WHERE departmentID = @departmentcode);
+
+SET @userIDX = (SELECT ID FROM tbl_users_Table WHERE id = @userID);
+SET @surname = (SELECT surname FROM tbl_users_Table WHERE id = @userID);
+SET @middlename = (SELECT middlename FROM tbl_users_Table WHERE id = @userID);
+SET @fristname = (SELECT firstname FROM tbl_users_Table WHERE id = @userID);
+SET @email = (SELECT email FROM tbl_users_Table WHERE id = @userID);
+SET @address = (SELECT address FROM tbl_users_Table WHERE id = @userID);
+
+INSERT INTO @ListofAllusers VALUES (@userIDX, @surname, @middlename, @fristname, @departmentname, @email, @address);
+
+SET @count = @count - 1;
+END
+
+ -- SELECT id AS ID, surname AS Surname, middlename AS MiddleName, firstname AS FirstName, departmentcode AS Department, email AS Email, address AS Address FROM tbl_users_Table
+
+-- SELECT @count;
+
+SELECT IDs AS ID, tempsurname AS Surname, tempmiddlename + ' ' + tempfirstname AS Names, tempdepartmentname AS Department, tempemail AS Email, tempaddress AS Address FROM @ListofAllusers
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[customersCorporateSelectAll]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROC [dbo].[customersCorporateSelectAll]
+AS
+SELECT name AS Name, registrationnumber AS ID, natureofbusiness AS Nature, telephone AS Telephone, coi AS Country, physicaladdress AS Physical, boxaddress AS Address, email AS Email FROM tbl_customerCorporateTable
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[customerSearchIndividual]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROC [dbo].[customerSearchIndividual] 
+@idpassport INT
+AS
+SELECT surName + ' ' + firstName + ' ' + middleName As Names, idpassport AS ID, mobile AS Mobile, email AS Email, gender AS Gender FROM tbl_customerIndividualTable WHERE idpassport LIKE @idpassport
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[customerSelect_ApplyLoan]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+create proc [dbo].[customerSelect_ApplyLoan]
+AS 
+SELECT customerID AS CustomerID, firstName + ', ' + middleName + ', ' + lastName AS Names, id_passport AS ID_Pass, nationality AS Nationality, tel_no AS Contact, email AS Email from tbl_customers
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[customerSelectCustomer]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROC [dbo].[customerSelectCustomer]
+@idpassport VARCHAR (50)
+AS
+SELECT surName AS Surname, firstName AS FirstName, middleName As MiddleName, idpassport AS ID, mobile AS Mobile, email AS Email, gender AS Gender, maritalstatus AS MaritalStatus, dob AS DOB, mobile AS Mobile, nationality AS Nationality, address AS Address, blackList AS BlackList FROM tbl_customerIndividualTable WHERE idpassport LIKE @idpassport
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[customerSelectLikeCustomer]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE proc [dbo].[customerSelectLikeCustomer]
+@idpassport INT
+AS
+SELECT surName AS Surname, firstName AS FirstName, middleName As MiddleName, idpassport AS ID, mobile AS Mobile, email AS Email, gender AS Gender, maritalstatus AS MaritalStatus, dob AS DOB, mobile AS Mobile, nationality AS Nationality, address AS Address FROM tbl_customersTable WHERE idpassport LIKE '%' + @idpassport + '%'
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[customersSelectAll]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROC [dbo].[customersSelectAll]
+AS
+SELECT surName + ' ' + firstName + ' ' + middleName As Names, idpassport AS ID, mobile AS Mobile, email AS Email, gender AS Gender FROM tbl_customerIndividualTable
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[customerUpdareCustomer]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+create proc [dbo].[customerUpdareCustomer] 
+@idpassport varchar (50),
+
+@SURNAME varchar (50),
+@FIRSTNAME varchar (50),
+@MIDDLENAME varchar (50),
+@DOB varchar (50),
+@GENDER varchar (50),
+@MARITALSTATUS varchar (50),
+@MOBILE varchar (50),
+@EMAIL varchar (50),
+@ADDRESS varchar (50),
+@NATIONALITY varchar (50)
+AS
+UPDATE tbl_CustomersTable SET surName = @SURNAME, firstName = @FIRSTNAME, middleName = @MIDDLENAME, dob = @DOB, gender = @GENDER, maritalstatus = @MARITALSTATUS, mobile = @MOBILE, email = @EMAIL, address = @EMAIL, nationality = @NATIONALITY WHERE idpassport LIKE @idpassport; 
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[department_add_department]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+CREATE PROC [dbo].[department_add_department]
+@department_name VARCHAR(50),
+@department_entries INT
+
+AS
+
+DECLARE @recordsFirtstCount INT;
+DECLARE @recordsSecondCount INT;
+
+DECLARE @result INT = 0;
+
+BEGIN
+
+SET @recordsFirtstCount = (SELECT COUNT (departmentID) FROM tbl_departments);
+
+INSERT INTO tbl_departments
+(
+department_name,
+department_entries,
+status
+)
+
+VALUES
+(
+@department_name,
+@department_entries,
+'true'
+)
+
+SET @recordsSecondCount = (SELECT COUNT (departmentID) FROM tbl_departments);
+
+
+IF (@recordsFirtstCount + 1 ) = @recordsSecondCount
+SET @result = 1;
+ELSE
+SET @result = 0;
+
+SELECT @result AS result
+END
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[department_delete_department]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROC [dbo].[department_delete_department]
+@department_name VARCHAR (50)
+AS
+DECLARE @firstStatus VARCHAR (50);
+DECLARE @lastStatus VARCHAR (50);
+
+DECLARE @result INT = 0;
+
+SET @firstStatus = (SELECT status FROM tbl_departments WHERE department_name = @department_name);
+
+UPDATE tbl_departments SET status = 'false' WHERE department_name = @department_name;
+
+SET @lastStatus = (SELECT status FROM tbl_departments WHERE department_name = @department_name);
+
+IF @firstStatus = @lastStatus
+SET @result = 0;
+ELSE
+SET @result = 1;
+
+SELECT @result AS result
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[department_update_department]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE proc [dbo].[department_update_department]
+@departmentCode VARCHAR (50),
+@departmentName VARCHAR (50)
+
+AS
+
+DECLARE @ID INT
+
+set @ID = (SELECT departmentID FROM tbl_departments_table WHERE department_code = @departmentCode);
+UPDATE tbl_departments_table SET department_name = @departmentName, department_code = @departmentCode WHERE departmentID = @ID
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[departmentSelectAll]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+CREATE proc [dbo].[departmentSelectAll]
+
+AS
+SELECT departmentID AS ID, department_name AS Name, department_entries AS Entries FROM tbl_departments WHERE status LIKE 'true'
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[getIndividualTimeStamp]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROC [dbo].[getIndividualTimeStamp]
+@idpassport varchar (50)
+AS
+SELECT lastdateOne AS LastVisitTime, reason AS Reason, userID AS Attendant FROM tbl_customer_Timestamp WHERE customerID LIKE @idpassport;
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[issueCSR]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[issueCSR]
+AS
+BEGIN TRANSACTION 
+DECLARE @count int = 0,
+		@Total int = 0
+		SET @count = (SELECT COUNT(userID) FROM tbl_users WHERE departmentID = 1)
+	WHILE @count > 0 BEGIN
+		SET @Total = @Total + 1
+		SET @count = @count - 1
+	END 
+SELECT @Total AS CRS_available
+COMMIT TRANSACTION
+
+
+
+
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[issueCSR_One]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[issueCSR_One]
+AS
+BEGIN TRANSACTION 
+DECLARE @count int = 0,
+		@Total int = 0,
+		@userID int = 0,
+		@username varchar(50) = '',
+		@userIDtoUse int = 0;
+DECLARE @ListofIDs TABLE(IDs int, name varchar(50));
+
+		SET @count = (SELECT COUNT(userID) FROM tbl_users WHERE departmentID = 1)
+
+	WHILE @count > 0 BEGIN
+		SET @userID = (SELECT TOP 1 userID FROM tbl_users WHERE departmentID = 1 AND userID > @userID ORDER BY userID ASC)
+		SET @username = (SELECT first_name FROM tbl_users WHERE userID = @userID)
+		INSERT INTO @ListofIDs VALUES(@userID, @username);
+		SET @count = @count - 1
+	END 
+
+	SET @userIDtoUse = (SELECT TOP 1 IDs FROM @ListofIDs ORDER BY IDs ASC);
+
+	/*SELECT IDs, name FROM @ListofIDs;*/
+	SELECT @userIDtoUse AS csrWithMinimum;
+
+
+/*SELECT @Total AS CRS_available*/
+COMMIT TRANSACTION
+
+
+
+
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[issueCSR_Two]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[issueCSR_Two]
+AS
+BEGIN TRANSACTION 
+DECLARE @count int = 0,
+		@Total int = 0,
+		@userID int = 0,
+		@applicationsCount int = 0,
+		@userIDWithMinimum int = 0,
+		@csrIDToAllocate int = 0;
+DECLARE @ListofIDs TABLE(IDs int, applicationsCount int);
+
+		SET @count = (SELECT COUNT(userID) FROM tbl_users WHERE departmentID = 1);
+
+	WHILE @count > 0 BEGIN
+		SET @userID = (SELECT TOP 1 userID FROM tbl_users WHERE departmentID = 1 AND userID > @userID ORDER BY userID ASC);
+
+		SET @applicationsCount = (SELECT COUNT(applicationID) FROM tbl_applications WHERE csrID = @userID);
+
+		INSERT INTO @ListofIDs VALUES(@userID, @applicationsCount);
+		SET @count = @count - 1;
+	END
+	SET @csrIDToAllocate = (SELECT TOP 1 IDs FROM @ListofIDs ORDER BY applicationsCount);
+	-- SELECT @csrIDToAllocate AS csrIDToAllocate;
+
+	INSERT INTO tbl_applications (leadID, applicationEntries, applicationStatus, csrID, creationtime)
+			VALUES (7, 2, 'true', @csrIDToAllocate, '2015-07-07')
+
+COMMIT TRANSACTION
+
+
+
+
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[leadInsert]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROC [dbo].[leadInsert]
+		   @LeadID int,
+           @LeadEntries int
+
+AS
+BEGIN TRANSACTION
+INSERT INTO tbl_leads
+           (LeadID
+           ,LeadEntries)
+     VALUES
+           (@LeadID
+           ,@LeadEntries)
+IF @@error <> 0       
+	BEGIN      
+	ROLLBACK TRANSACTION      
+	RETURN      
+	END    
+	COMMIT TRANSACTION
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[logOffAll]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+create proc [dbo].[logOffAll]
+as
+update tbl_System_users_Log set loginstatus = 'false'
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[MLCAllApplications]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+create proc [dbo].[MLCAllApplications]
+@mlcID int
+AS
+SELECT applicationID AS ApplicationID, creditRiskID  AS CreditRisk_ID, creditRiskName AS Credit_Risk_Name, creditRiskApprovedDate AS Date_Approved, creditRiskReason AS Reason FROM tbl_creditRisk_approvedApplications WHERE mlcID = @mlcID AND ApplicationStatus LIKE 'Approved'
+
+
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[MlcApplicationCount]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+Create proc [dbo].[MlcApplicationCount]
+@mlcID int
+AS
+SELECT COUNT (applicationID)  AS applicationsCount from tbl_creditRisk_approvedApplications WHERE mlcID = @mlcID AND applicationStatus = 'Approved';
+
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[MlcApplicationSelect]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+Create  PROC [dbo].[MlcApplicationSelect]
+@mlcID int,
+@applicationID int
+AS 
+SELECT applicationID AS ApplicationID, creditRiskID AS CreditRisk_ID, creditRiskName AS CreditRisk_Name, creditRiskApprovedDate AS Date_Approved, creditRiskReason AS Reason FROM tbl_creditRisk_approvedApplications WHERE mlcID = @mlcID AND applicationID = @applicationID
+
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[MLCApprovedApplication]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+Create proc [dbo].[MLCApprovedApplication]
+@applicationID int,
+@mlcID int,
+@reason text,
+@date date,
+@choice varchar (50)
+AS
+DECLARE 
+@mlcName varchar(50),
+@creditAdminID int
+SET @creditAdminID=(SELECT creditAdminID FROM tbl_users_MLC WHERE mlcID=@mlcID )
+SET @mlcName=( SELECT first_name FROM tbl_users WHERE userID=@mlcID)
+INSERT INTO tbl_Mlc_approvedApplications(applicationID,mlcID,creditAdminID,mlcApprovedDate,applicationStatus,mlcReason,mlcName)
+
+VALUES(@applicationID,@mlcID,@creditAdminID,@date,@choice,@reason,@mlcName)
+
+DELETE FROM tbl_creditRisk_approvedApplications WHERE applicationID = @applicationID
+
+
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[mlcGetCreditAdmin]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+Create proc [dbo].[mlcGetCreditAdmin]
+@mlcID int 
+AS 
+Declare @creditAdmin_ID int
+SET @creditAdmin_ID=(SELECT creditAdminID FROM tbl_users_MLC WHERE mlcID=@mlcID)
+
+SELECT first_name AS creditAdmin_Name FROM tbl_users WHERE userID=@creditAdmin_ID
+
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[mlcRejetedApplication]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+Create proc [dbo].[mlcRejetedApplication]
+@mlcID int
+AS
+SELECT applicationID AS ApplicationID, mlcID  AS Mlc_ID, mlcName AS Mlc_Risk_Name, mlcApprovedDate AS Date_Approved, mlcReason AS Reason FROM tbl_Mlc_approvedApplications WHERE mlcID = @mlcID AND applicationStatus LIKE 'Rejected'
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[mortageInsert]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE proc [dbo].[mortageInsert]
+
+@plotno varchar(50),
+@estateTel varchar(50),
+@estatename varchar(50),
+@estateNo varchar(50),
+
+
+@town varchar(50),
+@occcupiername varchar(50),
+@occupieraddress varchar(50),
+@occupierTel varchar(50),
+@obtainedK varchar(50),
+
+@agreement varchar(50),
+@purchaseprice varchar(50),
+@personalsaving varchar(50),
+@disposal varchar(50),
+
+@amountspent float(50),
+@other float(50),
+@total float(50),
+
+@secondmortage varchar(50),
+@reason varchar(50),
+@mortagee varchar(50),
+@propertystatus varchar(50),
+@years varchar(50),
+@details varchar(50),
+@ratableValue float(50),
+
+
+@wheremortaged varchar(50),
+@WhereTitleDeedIs varchar(50),
+@guestmortage varchar(50),
+@walls varchar(50),
+@roof varchar(50),
+@nearTown varchar(50)
+
+AS
+BEGIN 
+
+insert into tbl_Mortage_Table 
+(plotNo,estateTel,estateName,EstateNo,town,occupierName,occupierAddress,occupierTel,kObtained,agreement,purchasePrice,personalSaving,disposal,amountSpent,otherCash,totalCash,MortageSeco,reason,mortagee,propertStatus,years,details,ratableVal,whereMortaged,whereTitleDeedIs,guestMortage,walls,roof,nearTown)VALUES
+(@plotno,@estateTel,@estatename,@estateNo,@town,@occcupiername,@occupieraddress,@occupierTel,@obtainedK,@agreement,@purchaseprice,@personalsaving,@disposal,@amountspent,@other,@total,@secondmortage,@reason,@mortagee,@propertystatus,@years,@details,@ratableValue,@wheremortaged,@WhereTitleDeedIs,@guestmortage,@walls,@roof,@nearTown)
+
+
+END
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[PROCSupervisorGetCreditRisk]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE proc  [dbo].[PROCSupervisorGetCreditRisk]
+@supervisorID int
+AS
+DECLARE @creditRisk int;
+
+SET @creditRisk = (SELECT CreditRiskID from tbl_users_Supervisors WHERE supervisorID = @supervisorID);
+
+SELECT first_name AS CreditRiskName from tbl_users where userID = @creditRisk;
+
+
+
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[SelfEmployedInsert]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+Create PROC [dbo].[SelfEmployedInsert]
+  @NatureBusiness nvarchar(50),
+           @AddressB nvarchar(50),
+           @TimeLengthEstablishd nvarchar(50),
+           @TimeLengthControl nvarchar(50),
+           @NameAuditor nvarchar(50),
+           @Evidence nvarchar(50)
+		   AS
+		BEGIN TRANSACTION
+
+INSERT INTO tbl_SelfEmployedPersons
+          ( NatureBusiness
+           ,AddressB
+           ,TimeLengthEstablishd
+           ,TimeLengthControl
+           ,NameAuditor
+           ,Evidence)
+     VALUES(
+		    @NatureBusiness,
+           @AddressB,
+           @TimeLengthEstablishd,
+           @TimeLengthControl,
+           @NameAuditor ,
+           @Evidence )
+		   IF @@error <> 0       
+	BEGIN      
+	ROLLBACK TRANSACTION      
+	RETURN      
+	END    
+	COMMIT TRANSACTION
+
+
+
+
+
+
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[supervisorAllapplications]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROC [dbo].[supervisorAllapplications]
+@supervisorID int
+AS
+SELECT applicationID AS ApplicationID, creditAnalystID AS CreditAnalyst_ID, creditAnalystName AS CreditAnalyst_Name, creditAnalystApprovedDate AS Date_Approved, creditAnalystReason AS Reason FROM tbl_CreditAnalyst_approvedApplications WHERE supervisorID = @supervisorID AND ApplicationStatus LIKE 'Approved'
+
+
+
+
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[supervisorApplicationCount]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROC [dbo].[supervisorApplicationCount]
+@supervisorID int
+AS 
+SELECT COUNT (applicationID)  AS applicationsCount from tbl_CreditAnalyst_approvedApplications WHERE supervisorID = @supervisorID AND applicationStatus = 'Approved';
+
+
+
+
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[supervisorApplicationsApproved_Reject]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROC [dbo].[supervisorApplicationsApproved_Reject]
+@applicationID int,
+@supervisorID int,
+@reason text,
+@date date,
+@choice varchar (50)
+AS 
+DECLARE @supervisorName varchar (50),
+		@creditRiskID int;
+
+SET @creditRiskID = (SELECT creditRiskID FROM tbl_users_Supervisors WHERE supervisorID = @supervisorID);
+SET @supervisorName = (SELECT first_name FROM tbl_users WHERE userID = @supervisorID);
+
+INSERT INTO tbl_Supervisor_approvedApplications (applicationID, supervisorID, creditRiskID, supervisorApprovedDate, applicationStatus, supervisorReason, supervisorName)
+VALUES (@applicationID, @supervisorID, @creditRiskID, @date, @choice, @reason, @supervisorName)
+
+DELETE FROM tbl_CreditAnalyst_approvedApplications WHERE applicationID = @applicationID
+
+
+
+
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[supervisorApplicationSelect]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROC [dbo].[supervisorApplicationSelect]
+@supervisorID int,
+@applicationID int
+AS 
+SELECT applicationID AS ApplicationID, creditAnalystID AS CreditAnalyst_ID, creditAnalystName AS CreditAnalyst_Name, creditAnalystApprovedDate AS Date_Approved, creditAnalystReason AS Reason FROM tbl_CreditAnalyst_approvedApplications WHERE supervisorID = @supervisorID AND applicationID = @applicationID
+
+
+
+
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[supervisorChangeApplication]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROC [dbo].[supervisorChangeApplication]
+@supervisorID int,
+@applicationID int,
+@creditAnalystOneID int, 
+@creditAnalystTwoID int
+AS
+
+UPDATE tbl_applications SET csrID = @creditAnalystTwoID WHERE applicationID = @applicationID AND csrID = @creditAnalystOneID;
+
+DELETE FROM tbl_applications WHERE applicationID = @applicationID AND csrID = @creditAnalystOneID
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[supervisorGetCreditRisk]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+Create proc [dbo].[supervisorGetCreditRisk]
+@supervisorID int
+AS 
+Declare @creditRiskID int
+SET @creditRiskID=(SELECT CreditRiskID FROM tbl_users_Supervisors WHERE supervisorID=@supervisorID)
+SELECT first_name from tbl_users where userID=@creditRiskID
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[supervisorMyCAs]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE proc [dbo].[supervisorMyCAs]
+@supervisorID int
+AS
+DECLARE @ListofIDs TABLE(creditAnalystsIDs int);
+DECLARE @idsCount int = 0;
+DECLARE @userID int = 0;
+DECLARE @ListofCAs TABLE(creditAnalystsIDs int, creditAnalystsNames varchar(50), applicationsCount int, userStatus varchar(50));
+
+
+BEGIN TRANSACTION
+
+SET @idsCount = (SELECT COUNT (creditAnalystID) FROM tbl_users_CreditAnalysts WHERE supervisorID = @supervisorID);
+
+WHILE @idsCount > 0 BEGIN
+
+SET @userID = (SELECT TOP 1 creditAnalystID FROM tbl_users_CreditAnalysts WHERE supervisorID = @supervisorID AND creditAnalystID > @userID ORDER BY creditAnalystID ASC);
+
+INSERT INTO @ListofIDs VALUES(@userID);
+
+SET @idsCount = @idsCount - 1;
+END
+
+SET @idsCount = (SELECT COUNT (creditAnalystsIDs) FROM @ListofIDs);
+
+declare @tempUser int = 0;
+declare @pendingApplicationsCount int = 0;
+declare @tempNames varchar (50);
+declare @tempStatus varchar (50);
+
+
+WHILE @idsCount > 0 BEGIN
+
+SET @tempUser = (SELECT TOP 1 creditAnalystsIDs FROM @ListofIDs WHERE creditAnalystsIDs > @tempUser ORDER BY creditAnalystsIDs ASC);
+
+SET @tempNames = (SELECT first_name + '   ' + middle_name + '   ' + last_name from tbl_users WHERE userID = @tempUser);
+
+Set @pendingApplicationsCount = (SELECT COUNT (applicationID) FROM tbl_applications WHERE csrID = @tempUser);
+
+Set @tempStatus = (SELECT user_status FROM tbl_users WHERE userID = @tempUser);
+
+INSERT INTO @ListofCAs VALUES(@tempUser, @tempNames, @pendingApplicationsCount, @tempStatus);
+
+SET @idsCount = @idsCount - 1;
+END
+
+SELECT creditAnalystsIDs AS ID, creditAnalystsNames AS Names, applicationsCount AS Pending_Applications, userStatus AS User_Status  FROM @ListofCAs
+
+COMMIT TRANSACTION
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[supervisorMyCAsException]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[supervisorMyCAsException]
+@caID int,
+@supervisorID int
+AS
+DECLARE @ListofIDs TABLE(creditAnalystsIDs int);
+DECLARE @idsCount int = 0;
+DECLARE @userID int = 0;
+DECLARE @ListofCAs TABLE(creditAnalystsIDs int, creditAnalystsNames varchar(50), applicationsCount int, userStatus varchar(50));
+
+
+BEGIN TRANSACTION
+
+SET @idsCount = (SELECT COUNT (creditAnalystID) FROM tbl_users_CreditAnalysts WHERE supervisorID = @supervisorID);
+
+WHILE @idsCount > 0 BEGIN
+
+SET @userID = (SELECT TOP 1 creditAnalystID FROM tbl_users_CreditAnalysts WHERE supervisorID = @supervisorID AND creditAnalystID > @userID ORDER BY creditAnalystID ASC);
+
+INSERT INTO @ListofIDs VALUES(@userID);
+
+SET @idsCount = @idsCount - 1;
+END
+
+SET @idsCount = (SELECT COUNT (creditAnalystsIDs) FROM @ListofIDs);
+
+declare @tempUser int = 0;
+declare @pendingApplicationsCount int = 0;
+declare @tempNames varchar (50);
+declare @tempStatus varchar (50);
+
+
+WHILE @idsCount > 0 BEGIN
+
+SET @tempUser = (SELECT TOP 1 creditAnalystsIDs FROM @ListofIDs WHERE creditAnalystsIDs > @tempUser ORDER BY creditAnalystsIDs ASC);
+
+SET @tempNames = (SELECT first_name + '   ' + middle_name + '   ' + last_name from tbl_users WHERE userID = @tempUser);
+
+Set @pendingApplicationsCount = (SELECT COUNT (applicationID) FROM tbl_applications WHERE csrID = @tempUser);
+
+Set @tempStatus = (SELECT user_status FROM tbl_users WHERE userID = @tempUser);
+
+INSERT INTO @ListofCAs VALUES(@tempUser, @tempNames, @pendingApplicationsCount, @tempStatus);
+
+SET @idsCount = @idsCount - 1;
+END
+
+SELECT creditAnalystsIDs AS ID, creditAnalystsNames AS Names, applicationsCount AS Pending_Applications, userStatus AS User_Status FROM @ListofCAs WHERE creditAnalystsIDs != @caID
+
+COMMIT TRANSACTION
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[updateUserTimeStamp]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+Create proc [dbo].[updateUserTimeStamp] 
+@idpassport VARCHAR (50),
+@userID INT,
+@reason VARCHAR (50),
+@date DATE
+as
+UPDATE tbl_customer_Timestamp SET reason = @reason, lastdateOne = @date, userID = @userID WHERE customerID = @idpassport
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[user_InsertUser]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE  proc  [dbo].[user_InsertUser]
+
+@userIDPassport INT,
+@last_name VARCHAR (50),
+@first_name VARCHAR (50),
+@middle_name VARCHAR (50),
+@employee_number INT,
+@leave_date_from DATE,
+@leave_date_to DATE,
+@gender VARCHAR (1),
+@user_name VARCHAR (20),
+@user_password VARCHAR (20),
+@phone_number VARCHAR (20),
+@email VARCHAR (50),
+@user_status VARCHAR (50),
+@branchname VARCHAR (50),
+@departmentname VARCHAR (50)
+
+AS
+ DECLARE @departmentID INT
+SET @departmentID = (SELECT departmentID FROM tbl_departments WHERE department_name LIKE @departmentname);
+
+INSERT INTO tbl_users
+VALUES 
+(@userIDPassport,
+@departmentID,
+@first_name,
+@middle_name,
+@last_name,
+@user_name,
+@user_password,
+@employee_number,
+@leave_date_from,
+@leave_date_to,
+@email,
+@branchname,
+@phone_number,
+@gender,
+@user_status)
+GO
+/****** Object:  StoredProcedure [dbo].[userDeleteUser]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROC [dbo].[userDeleteUser]
+@userID INT
+AS
+DECLARE @FirstRecords int = 0;
+DECLARE @LastRecords int = 0;
+DECLARE @result int = 0;
+
+
+SET @FirstRecords = (SELECT COUNT (id) FROM tbl_users_Table);
+DELETE FROM tbl_users_Table WHERE id = @userID;
+SET @LastRecords = (SELECT COUNT (id) FROM tbl_users_Table);
+IF @FirstRecords - 1 = @LastRecords
+SET @result = 1;
+ELSE
+SET @result = 0;
+
+SELECT @result As result;
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[userLogin]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROC [dbo].[userLogin]
+@username varchar(50),
+@userpassword varchar (50)
+AS
+DECLARE @flag varchar(50) = 'false';
+DECLARE @userID int
+
+
+
+SET @userID = (SELECT userID FROM tbl_users WHERE first_name LIKE @username AND middle_name LIKE @userpassword)
+
+update tbl_System_users_Log set loginstatus = 'false' WHERE userID = @userID
+
+SET @flag = (SELECT loginstatus FROM tbl_System_users_Log WHERE userID = @userID)
+
+IF @flag = 'false'
+BEGIN
+SELECT * FROM tbl_users WHERE userID = @userID;
+UPDATE tbl_System_users_Log SET loginstatus = 'true' WHERE userID = @userID;
+END
+
+
+
+
+
+
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[userLogout]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROC [dbo].[userLogout]
+@userID int
+AS
+UPDATE tbl_System_users_Log SET loginstatus = 'false' WHERE userID = @userID
+
+
+
+
+
+
+
+
+
+
+
+GO
+/****** Object:  StoredProcedure [dbo].[usersSelectDepartment]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE Proc [dbo].[usersSelectDepartment]
+@dptID int
+AS
+SELECT userID AS ID, first_name AS Name FROM tbl_users WHERE departmentID = @dptID;
+
+
+
+
+
+
+GO
+/****** Object:  Table [dbo].[tbl_applications]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[tbl_applications](
+	[applicationID] [int] IDENTITY(1,1) NOT NULL,
+	[leadID] [int] NOT NULL,
+	[applicationEntries] [int] NULL,
+	[applicationStatus] [varchar](50) NULL,
+	[csrID] [int] NULL,
+	[creationtime] [date] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[applicationID] ASC,
+	[leadID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [dbo].[tbl_applications_Table]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[tbl_applications_Table](
+	[id] [int] IDENTITY(1,1) NOT NULL,
+	[loanType] [varchar](50) NULL,
+	[loanAmount] [float] NULL,
+	[loanDuration] [int] NULL,
+	[loanID] [int] NULL,
+	[creationTime] [date] NULL,
+ CONSTRAINT [PK_tbl_applications_Table] PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [dbo].[tbl_audit_trail]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[tbl_audit_trail](
+	[Audit_logID] [int] NOT NULL,
+	[old_values] [varchar](50) NULL,
+	[new_values] [varchar](50) NULL,
+	[change_time] [datetime] NOT NULL,
+	[changed_by] [varchar](50) NOT NULL
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [dbo].[tbl_branches]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[tbl_branches](
+	[branchID] [int] IDENTITY(1,1) NOT NULL,
+	[branch_name] [varchar](50) NOT NULL,
+	[branch_location] [varchar](50) NULL,
+	[branch_code] [varchar](50) NULL,
+	[branch_phone_number] [varchar](50) NULL,
+	[branch_email] [varchar](50) NULL,
+	[mailling_address] [varchar](50) NULL,
+	[status] [varchar](50) NULL,
+ CONSTRAINT [PK_tbl_branches] PRIMARY KEY CLUSTERED 
+(
+	[branchID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [dbo].[tbl_CreditAnalyst_approvedApplications]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[tbl_CreditAnalyst_approvedApplications](
+	[applicationID] [int] NOT NULL,
+	[creditAnalystID] [int] NOT NULL,
+	[creditAnalystApprovedDate] [date] NOT NULL,
+	[supervisorID] [int] NOT NULL,
+	[creditAnalystReason] [text] NULL,
+	[applicationStatus] [varchar](50) NULL,
+	[creditAnalystName] [varchar](50) NULL
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [dbo].[tbl_creditRisk_approvedApplications]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[tbl_creditRisk_approvedApplications](
+	[ApplicationID] [int] NOT NULL,
+	[mlcID] [int] NOT NULL,
+	[creditRiskID] [int] NOT NULL,
+	[creditRiskApprovedDate] [date] NOT NULL,
+	[ApplicationStatus] [varchar](50) NOT NULL,
+	[creditRiskReason] [text] NOT NULL,
+	[creditRiskName] [varchar](50) NOT NULL
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [dbo].[tbl_Customer_Corporates]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[tbl_Customer_Corporates](
+	[directorID] [int] NOT NULL,
+	[directorName] [varchar](50) NOT NULL,
+	[nameOfCompany] [varchar](50) NOT NULL,
+	[regNo] [varchar](50) NOT NULL,
+	[natureOfBusiness] [varchar](50) NOT NULL,
+	[businessAddress] [varchar](50) NOT NULL,
+	[mobileNo] [int] NOT NULL,
+	[TelNo] [int] NOT NULL,
+	[email] [varchar](50) NOT NULL
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [dbo].[tbl_customer_Timestamp]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[tbl_customer_Timestamp](
+	[id] [int] IDENTITY(1,1) NOT NULL,
+	[customerID] [varchar](50) NULL,
+	[userID] [int] NULL,
+	[reason] [text] NULL,
+	[lastdateOne] [date] NULL,
+	[lastdateTwo] [date] NULL,
+	[lastdateThree] [date] NULL,
+ CONSTRAINT [PK_tbl_customer_Timestamp] PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [dbo].[tbl_customerCorporateTable]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[tbl_customerCorporateTable](
+	[id] [int] IDENTITY(1,1) NOT NULL,
+	[name] [varchar](50) NOT NULL,
+	[dateofregistration] [varchar](50) NULL,
+	[natureofbusiness] [varchar](50) NOT NULL,
+	[telephone] [varchar](50) NULL,
+	[registrationnumber] [varchar](50) NOT NULL,
+	[coi] [varchar](50) NULL,
+	[registeredoffice] [varchar](50) NULL,
+	[physicaladdress] [varchar](50) NULL,
+	[boxaddress] [varchar](50) NULL,
+	[email] [varchar](50) NULL,
+	[directorOne] [varchar](50) NULL,
+	[directorTwo] [varchar](50) NOT NULL,
+	[directorThree] [varchar](50) NULL,
+	[timeStampID] [int] NULL,
+	[website] [varchar](50) NULL,
+ CONSTRAINT [PK_tbl_customerCorporateTable] PRIMARY KEY CLUSTERED 
+(
+	[registrationnumber] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [dbo].[tbl_customerIndividualTable]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING OFF
+GO
+CREATE TABLE [dbo].[tbl_customerIndividualTable](
+	[customerID] [int] IDENTITY(1,1) NOT NULL,
+	[surName] [varchar](50) NULL,
+	[firstName] [varchar](50) NULL,
+	[middleName] [varchar](50) NULL,
+	[dob] [varchar](50) NULL,
+	[idpassport] [varchar](50) NOT NULL,
+	[gender] [varchar](50) NULL,
+	[maritalstatus] [varchar](50) NULL,
+	[mobile] [varchar](50) NULL,
+	[email] [varchar](50) NULL,
+	[address] [varchar](50) NULL,
+	[nationality] [varchar](50) NULL
+) ON [PRIMARY]
+SET ANSI_PADDING ON
+ALTER TABLE [dbo].[tbl_customerIndividualTable] ADD [creationDate] [varchar](50) NULL
+ALTER TABLE [dbo].[tbl_customerIndividualTable] ADD [branchcode] [int] NULL
+ALTER TABLE [dbo].[tbl_customerIndividualTable] ADD [timeStampID] [varchar](50) NULL
+ALTER TABLE [dbo].[tbl_customerIndividualTable] ADD [blackList] [varchar](50) NULL
+ CONSTRAINT [PK_tbl_CustomerTable] PRIMARY KEY CLUSTERED 
+(
+	[idpassport] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [dbo].[tbl_customers]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[tbl_customers](
+	[customerID] [int] IDENTITY(1,1) NOT NULL,
+	[leadID] [int] NOT NULL,
+	[firstName] [varchar](50) NOT NULL,
+	[middleName] [varchar](50) NOT NULL,
+	[lastName] [varchar](50) NOT NULL,
+	[sex] [varchar](50) NOT NULL,
+	[maritalstatus] [varchar](50) NOT NULL,
+	[id_passport] [int] NOT NULL,
+	[Y_O_B] [date] NOT NULL,
+	[address] [varchar](50) NOT NULL,
+	[N_O_D] [int] NOT NULL,
+	[nationality] [varchar](50) NOT NULL,
+	[LoanRequired] [float] NOT NULL,
+	[savingDeposit_account] [varchar](50) NOT NULL,
+	[time_at_premises_years] [int] NOT NULL,
+	[time_at_premises_months] [int] NOT NULL,
+	[loan_duration] [int] NOT NULL,
+	[loan_purpose] [text] NOT NULL,
+	[owned_outright] [varchar](50) NULL,
+	[owned_Mortgage] [varchar](50) NULL,
+	[rented] [varchar](50) NOT NULL,
+	[city_town] [varchar](50) NOT NULL,
+	[land_registration_number] [varchar](50) NOT NULL,
+	[tel_no] [varchar](50) NULL,
+	[email] [varchar](50) NULL,
+	[branch] [varchar](50) NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[customerID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [dbo].[tbl_departments]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[tbl_departments](
+	[departmentID] [int] NOT NULL,
+	[department_name] [varchar](50) NOT NULL,
+	[department_entries] [int] NOT NULL,
+	[status] [varchar](50) NULL,
+ CONSTRAINT [PK_tbl_departments] PRIMARY KEY CLUSTERED 
+(
+	[departmentID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [dbo].[tbl_leads]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[tbl_leads](
+	[LeadID] [int] IDENTITY(1,1) NOT NULL,
+	[LeadEntries] [int] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[LeadID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+/****** Object:  Table [dbo].[tbl_loans_mode]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[tbl_loans_mode](
+	[LoaneemodeTitle] [varchar](50) NULL,
+	[Loanee_modeID] [int] NOT NULL,
+ CONSTRAINT [PK_tbl_loans_mode] PRIMARY KEY CLUSTERED 
+(
+	[Loanee_modeID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [dbo].[tbl_loanTypes]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[tbl_loanTypes](
+	[LoanTitle] [varchar](50) NULL,
+	[LoanID] [int] NOT NULL,
+	[Entries] [int] NULL,
+ CONSTRAINT [PK_tbl_loans_Type] PRIMARY KEY CLUSTERED 
+(
+	[LoanID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [dbo].[tbl_Mlc_approvedApplications]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[tbl_Mlc_approvedApplications](
+	[applicationID] [int] NOT NULL,
+	[mlcID] [int] NOT NULL,
+	[creditAdminID] [int] NOT NULL,
+	[mlcApprovedDate] [date] NOT NULL,
+	[applicationStatus] [varchar](50) NOT NULL,
+	[mlcReason] [text] NOT NULL,
+	[mlcName] [varchar](50) NOT NULL
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [dbo].[tbl_Mortage_Table]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[tbl_Mortage_Table](
+	[id] [int] IDENTITY(1,1) NOT NULL,
+	[plotNo] [varchar](50) NULL,
+	[estateTel] [varchar](50) NULL,
+	[estateName] [varchar](50) NULL,
+	[EstateNo] [varchar](50) NULL,
+	[town] [varchar](50) NULL,
+	[occupierName] [varchar](50) NOT NULL,
+	[occupierAddress] [varchar](50) NOT NULL,
+	[occupierTel] [varchar](50) NOT NULL,
+	[kObtained] [varchar](50) NULL,
+	[agreement] [varchar](50) NULL,
+	[purchasePrice] [varchar](50) NOT NULL,
+	[personalSaving] [varchar](50) NOT NULL,
+	[disposal] [varchar](50) NOT NULL,
+	[amountSpent] [float] NOT NULL,
+	[otherCash] [float] NOT NULL,
+	[totalCash] [float] NOT NULL,
+	[MortageSeco] [varchar](50) NOT NULL,
+	[reason] [text] NOT NULL,
+	[mortagee] [varchar](50) NOT NULL,
+	[propertStatus] [varchar](50) NOT NULL,
+	[years] [varchar](50) NULL,
+	[details] [varchar](50) NOT NULL,
+	[ratableVal] [float] NOT NULL,
+	[whereMortaged] [varchar](50) NULL,
+	[whereTitleDeedIs] [varchar](50) NULL,
+	[guestMortage] [varchar](50) NOT NULL,
+	[walls] [varchar](50) NULL,
+	[roof] [varchar](50) NULL,
+	[nearTown] [varchar](50) NULL
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [dbo].[tbl_mortgage]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[tbl_mortgage](
+	[mortgageID] [int] NOT NULL,
+	[plot_no] [varchar](50) NULL,
+	[etate] [varchar](50) NULL,
+	[telephone_number_of_vendor] [varchar](50) NULL,
+	[telephone_number_of_occupier] [varchar](50) NULL,
+	[where_to_obtain_keys] [varchar](50) NULL,
+	[purchase_price] [varchar](50) NULL,
+	[personal_savings] [varchar](50) NULL,
+	[disposal_of_investmemnts] [varchar](50) NULL,
+	[amount_already_spent] [varchar](50) NULL,
+	[others] [varchar](50) NULL,
+	[Total] [varchar](50) NULL,
+	[reason] [varchar](50) NULL,
+	[mortgagee] [varchar](50) NULL,
+	[property_freeHold] [varchar](50) NULL,
+	[second_mortgage] [varchar](50) NULL,
+	[Visit_premises] [varchar](50) NULL
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [dbo].[tbl_Nationality]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[tbl_Nationality](
+	[NationalityID] [int] NOT NULL,
+	[Nationality] [varchar](50) NULL,
+ CONSTRAINT [PK_tblNationality] PRIMARY KEY CLUSTERED 
+(
+	[NationalityID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [dbo].[tbl_RejectedApplications]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[tbl_RejectedApplications](
+	[applicationID] [int] NOT NULL,
+	[userID] [int] NOT NULL,
+	[username] [varbinary](50) NOT NULL,
+	[departmentName] [varchar](50) NOT NULL,
+	[applicationStatus] [varchar](50) NOT NULL,
+	[rejectedDate] [date] NOT NULL,
+	[Reason] [text] NOT NULL
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [dbo].[tbl_SelfEmployedPersons]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[tbl_SelfEmployedPersons](
+	[NatureBusiness] [nvarchar](50) NULL,
+	[AddressB] [nvarchar](50) NULL,
+	[TimeLengthEstablishd] [nvarchar](50) NOT NULL,
+	[TimeLengthControl] [nvarchar](50) NOT NULL,
+	[NameAuditor] [nvarchar](50) NOT NULL,
+	[Evidence] [nvarchar](max) NOT NULL,
+ CONSTRAINT [PK_tbl_SelfEmployedPersons] PRIMARY KEY CLUSTERED 
+(
+	[TimeLengthEstablishd] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+GO
+/****** Object:  Table [dbo].[tbl_Settings]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[tbl_Settings](
+	[CustomersUploadsPathRaw] [nvarchar](50) NULL,
+	[CustomersUploadsPathResized] [nvarchar](50) NULL,
+	[UsersUploadsPathRaw] [nvarchar](50) NULL,
+	[UsersUploadsPathResized] [nvarchar](50) NULL,
+	[ApplicationsUploadsPathResized] [nvarchar](50) NULL,
+	[ApplicationsUploadsPathRaw] [nvarchar](50) NULL,
+	[CustomersUploadsReadPathResized] [nvarchar](50) NULL
+) ON [PRIMARY]
+
+GO
+/****** Object:  Table [dbo].[tbl_Sex]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[tbl_Sex](
+	[SexID] [int] NOT NULL,
+	[Sex] [varchar](50) NULL,
+ CONSTRAINT [PK_tbl_Sex] PRIMARY KEY CLUSTERED 
+(
+	[SexID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [dbo].[tbl_Status]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[tbl_Status](
+	[StatusID] [int] NOT NULL,
+	[Status] [varchar](50) NULL,
+ CONSTRAINT [PK_tbl_Status] PRIMARY KEY CLUSTERED 
+(
+	[StatusID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [dbo].[tbl_Supervisor_approvedApplications]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[tbl_Supervisor_approvedApplications](
+	[applicationID] [int] NULL,
+	[supervisorID] [int] NULL,
+	[creditRiskID] [int] NULL,
+	[supervisorApprovedDate] [date] NULL,
+	[applicationStatus] [varchar](50) NULL,
+	[supervisorReason] [text] NULL,
+	[supervisorName] [varchar](50) NULL
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [dbo].[tbl_System_users_Log]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[tbl_System_users_Log](
+	[userID] [int] NOT NULL,
+	[loginstatus] [varchar](50) NOT NULL
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [dbo].[tbl_timeStamp]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[tbl_timeStamp](
+	[timeStampID] [int] IDENTITY(1,1) NOT NULL,
+	[creation_time] [datetime] NOT NULL,
+	[view_time] [datetime] NOT NULL,
+	[viewed_by] [varchar](50) NOT NULL,
+	[reasons] [varchar](50) NOT NULL,
+ CONSTRAINT [PK_tbl_timeStamp] PRIMARY KEY CLUSTERED 
+(
+	[timeStampID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [dbo].[tbl_users]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[tbl_users](
+	[ID] [int] IDENTITY(1,1) NOT NULL,
+	[userIDPassport] [int] NOT NULL,
+	[department_id] [int] NOT NULL,
+	[first_name] [varchar](50) NOT NULL,
+	[middle_name] [varchar](50) NOT NULL,
+	[last_name] [varchar](50) NOT NULL,
+	[user_name] [varchar](50) NOT NULL,
+	[user_password] [varchar](50) NOT NULL,
+	[employee_number] [int] NOT NULL,
+	[leave_date_from] [date] NOT NULL,
+	[leave_date_to] [date] NOT NULL,
+	[email] [varchar](50) NOT NULL,
+	[branch_name] [varchar](50) NOT NULL,
+	[phone_number] [varchar](50) NOT NULL,
+	[gender] [varchar](50) NOT NULL,
+	[user_status] [varchar](50) NULL
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [dbo].[tbl_users_copy]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[tbl_users_copy](
+	[userID] [int] NOT NULL,
+	[departmentID] [int] NOT NULL,
+	[user_department] [int] NOT NULL,
+	[first_name] [varchar](50) NOT NULL,
+	[middle_name] [varchar](50) NOT NULL,
+	[last_name] [varchar](50) NOT NULL,
+	[employee_number] [int] NOT NULL,
+	[leave_date_from] [date] NOT NULL,
+	[leave_date_to] [date] NOT NULL,
+	[email] [varchar](50) NOT NULL,
+	[phone_number] [varchar](50) NOT NULL,
+	[gender] [varchar](50) NOT NULL,
+	[user_status] [varchar](50) NULL
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [dbo].[tbl_users_CreditAnalysts]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[tbl_users_CreditAnalysts](
+	[creditAnalystID] [int] NULL,
+	[supervisorID] [int] NULL
+) ON [PRIMARY]
+
+GO
+/****** Object:  Table [dbo].[tbl_users_CreditRisk]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[tbl_users_CreditRisk](
+	[creditRiskID] [int] NOT NULL,
+	[mlcID] [int] NOT NULL
+) ON [PRIMARY]
+
+GO
+/****** Object:  Table [dbo].[tbl_users_MLC]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[tbl_users_MLC](
+	[mlcID] [int] NOT NULL,
+	[creditAdminID] [int] NOT NULL
+) ON [PRIMARY]
+
+GO
+/****** Object:  Table [dbo].[tbl_users_Supervisors]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[tbl_users_Supervisors](
+	[supervisorID] [int] NOT NULL,
+	[CreditRiskID] [int] NOT NULL
+) ON [PRIMARY]
+
+GO
+/****** Object:  Table [dbo].[tbl_users1]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[tbl_users1](
+	[userID] [int] IDENTITY(1,1) NOT NULL,
+	[departmentID] [int] NOT NULL,
+	[user_department] [int] NOT NULL,
+	[first_name] [varchar](50) NOT NULL,
+	[middle_name] [varchar](50) NOT NULL,
+	[last_name] [varchar](50) NOT NULL,
+	[employee_number] [int] NOT NULL,
+	[leave_date_from] [date] NOT NULL,
+	[leave_date_to] [date] NOT NULL,
+	[email] [varchar](50) NOT NULL,
+	[phone_number] [varchar](50) NOT NULL,
+	[gender] [varchar](50) NOT NULL,
+	[user_status] [varchar](50) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[userID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [dbo].[tblRegistrars]    Script Date: 9/1/2015 8:35:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[tblRegistrars](
+	[RegistrarID] [int] IDENTITY(1,1) NOT NULL,
+	[RegistrarName] [nvarchar](100) NULL,
+ CONSTRAINT [PK_tblRegistrars] PRIMARY KEY CLUSTERED 
+(
+	[RegistrarID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+SET IDENTITY_INSERT [dbo].[tbl_applications] ON 
+
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1043, 7, 2, N'true', 7, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1060, 7, 2, N'true', 7, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1064, 7, 2, N'true', 5, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1065, 7, 2, N'true', 7, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1069, 7, 2, N'true', 5, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1070, 7, 2, N'true', 7, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1075, 7, 2, N'true', 7, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1092, 7, 2, N'true', 5, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1093, 7, 2, N'true', 7, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1098, 7, 2, N'true', 7, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1115, 7, 2, N'true', 7, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1119, 7, 2, N'true', 5, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1120, 7, 2, N'true', 7, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1124, 7, 2, N'true', 5, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1125, 7, 2, N'true', 7, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1128, 7, 2, N'true', 5, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1132, 7, 2, N'true', 5, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1137, 7, 2, N'true', 7, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1173, 7, 2, N'true', 3, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1176, 7, 2, N'true', 3, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1187, 7, 2, N'true', 5, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1190, 7, 2, N'true', 7, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1191, 7, 2, N'true', 3, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1194, 7, 2, N'true', 7, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1195, 7, 2, N'true', 3, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1198, 7, 2, N'true', 5, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1199, 7, 2, N'true', 7, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1200, 7, 2, N'true', 3, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1204, 7, 2, N'true', 7, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1205, 7, 2, N'true', 3, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1208, 7, 2, N'true', 5, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1209, 7, 2, N'true', 7, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1210, 7, 2, N'true', 3, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1211, 7, 2, N'true', 2, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1214, 7, 2, N'true', 7, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1216, 7, 2, N'true', 2, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1218, 7, 2, N'true', 3, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1219, 7, 2, N'true', 7, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1220, 7, 2, N'true', 3, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1222, 7, 2, N'true', 2, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1224, 7, 2, N'true', 2, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1225, 7, 2, N'true', 2, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1226, 7, 2, N'true', 2, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1228, 7, 2, N'true', 5, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1229, 7, 2, N'true', 7, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1230, 7, 2, N'true', 3, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1231, 7, 2, N'true', 2, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1233, 7, 2, N'true', 5, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1234, 7, 2, N'true', 7, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1235, 7, 2, N'true', 3, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1236, 7, 2, N'true', 2, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1238, 7, 2, N'true', 5, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1239, 7, 2, N'true', 7, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1240, 7, 2, N'true', 5, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1241, 7, 2, N'true', 2, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1243, 7, 2, N'true', 2, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1244, 7, 2, N'true', 2, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1245, 7, 2, N'true', 2, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1247, 7, 2, N'true', 2, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1249, 7, 2, N'true', 5, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1250, 7, 2, N'true', 7, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1251, 7, 2, N'true', 3, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1252, 7, 2, N'true', 2, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1254, 7, 2, N'true', 5, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1255, 7, 2, N'true', 7, CAST(0x293A0B00 AS Date))
+GO
+INSERT [dbo].[tbl_applications] ([applicationID], [leadID], [applicationEntries], [applicationStatus], [csrID], [creationtime]) VALUES (1279, 7, 2, N'true', 4, CAST(0x293A0B00 AS Date))
+GO
+SET IDENTITY_INSERT [dbo].[tbl_applications] OFF
+GO
+SET IDENTITY_INSERT [dbo].[tbl_branches] ON 
+
+GO
+INSERT [dbo].[tbl_branches] ([branchID], [branch_name], [branch_location], [branch_code], [branch_phone_number], [branch_email], [mailling_address], [status]) VALUES (1, N'Kisumu', N'Kisumu', N'204', N'0706 828 557', N'derekmwirigi@hotmail.com', N'457 Kisumu', N'false')
+GO
+INSERT [dbo].[tbl_branches] ([branchID], [branch_name], [branch_location], [branch_code], [branch_phone_number], [branch_email], [mailling_address], [status]) VALUES (2, N'Eldoret', N'Eldoret WEST', N'205', N'3456789', N'eld@gmail.com', N'', N'false')
+GO
+INSERT [dbo].[tbl_branches] ([branchID], [branch_name], [branch_location], [branch_code], [branch_phone_number], [branch_email], [mailling_address], [status]) VALUES (3, N'TRM Thika Road Mall', N'Thika Road ', N'206', N'9876543', N'trm@hf.com', N'125 Thika', N'true')
+GO
+INSERT [dbo].[tbl_branches] ([branchID], [branch_name], [branch_location], [branch_code], [branch_phone_number], [branch_email], [mailling_address], [status]) VALUES (4, N'Rongai', N'Rongai', N'207', N'45675657', N'ronga.com', N'2455 Rongai', N'false')
+GO
+INSERT [dbo].[tbl_branches] ([branchID], [branch_name], [branch_location], [branch_code], [branch_phone_number], [branch_email], [mailling_address], [status]) VALUES (6, N'Meru Chuka', N'Meru', N'209', N'0706 828 557', N'meru@hosingfinance.com', N'1481 Meru', N'true')
+GO
+INSERT [dbo].[tbl_branches] ([branchID], [branch_name], [branch_location], [branch_code], [branch_phone_number], [branch_email], [mailling_address], [status]) VALUES (7, N'kitui', N'mwala', N'562', N'85569855', N'fff@yahoo.com', NULL, N'true')
+GO
+INSERT [dbo].[tbl_branches] ([branchID], [branch_name], [branch_location], [branch_code], [branch_phone_number], [branch_email], [mailling_address], [status]) VALUES (8, N'meru', N'nkubu', N'456', N'123654', N'nk@gmail.com', NULL, N'true')
+GO
+SET IDENTITY_INSERT [dbo].[tbl_branches] OFF
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1143, 4, CAST(0x4C350B00 AS Date), 6, N'y that for those six months, she loved it, every minute of it.Until that day when her car was stolen from her office parking lot. Dietrich said police gave her little hope, and told her that her beloved Corvette was probably gone for good.  I was very sad, she said. It took me a couple years to get over that. Then, last October, a call came out of the blue to the Georgia native, telling her that her car had bee', N'Rejected', N'Derek')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1140, 2, CAST(0x4C350B00 AS Date), 1, N'SADad', N'Rejected', N'Rogers')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1144, 2, CAST(0x4C350B00 AS Date), 1, N'd her that her beloved Corvette was probably gone for good.  I was very sad, she said. It took me a couple years to get over that. Then, last October, a call came out of the blue to the Georgia native, telling her that her car had been found in N', N'Rejected', N'Rogers')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1148, 2, CAST(0x4C350B00 AS Date), 1, N'd her that her beloved Corvette was probably gone for good.  I was very sad, she said. It took me a couple years to get over that. Then, last October, a call came out of the blue to the Georgia native, telling her that her car had been found in N', N'Rejected', N'Rogers')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1094, 3, CAST(0x4C350B00 AS Date), 8, N'asdasd', N'Approved', N'Morris')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1192, 2, CAST(0x4C350B00 AS Date), 1, N'', N'Approved', N'Rogers')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1184, 2, CAST(0x4C350B00 AS Date), 1, N'ssss', N'Approved', N'Rogers')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1177, 2, CAST(0x4C350B00 AS Date), 1, N'ccc', N'Approved', N'Rogers')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1178, 2, CAST(0x4C350B00 AS Date), 1, N'ccc', N'Approved', N'Rogers')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1179, 2, CAST(0x4C350B00 AS Date), 1, N'ccc', N'Approved', N'Rogers')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1185, 2, CAST(0x4C350B00 AS Date), 1, N'aaaa', N'Approved', N'Rogers')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1196, 2, CAST(0x4C350B00 AS Date), 1, N'', N'Approved', N'Rogers')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1168, 2, CAST(0x4C350B00 AS Date), 1, N' bb', N'Approved', N'Rogers')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1156, 4, CAST(0x4C350B00 AS Date), 6, N'qwewq', N'Approved', N'Derek')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1154, 4, CAST(0x4C350B00 AS Date), 6, N'at day when her car was stolen from her office parking lot. Dietrich said police gave her little hope, and told her tha', N'Rejected', N'Derek')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1215, 3, CAST(0x4C350B00 AS Date), 8, N'those six ', N'Approved', N'Morris')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1116, 3, CAST(0x4C350B00 AS Date), 8, N'sdfsdf', N'Approved', N'Morris')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1189, 4, CAST(0x4C350B00 AS Date), 6, N'Rivera for TODAY Sunday that for those six months, she loved it, every minute of it.Until that day when ', N'Approved', N'Derek')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1227, 4, CAST(0x4C350B00 AS Date), 6, N'when ', N'Approved', N'Derek')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1170, 3, CAST(0x4C350B00 AS Date), 8, N'telling ', N'Approved', N'Morris')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1133, 3, CAST(0x4C350B00 AS Date), 8, N'months', N'Approved', N'Morris')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1217, 4, CAST(0x4C350B00 AS Date), 6, N'Sunday ', N'Approved', N'Derek')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1175, 4, CAST(0x4C350B00 AS Date), 6, N'beloved ', N'Approved', N'Derek')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1201, 2, CAST(0x4C350B00 AS Date), 1, N'stolen ', N'Approved', N'Rogers')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1207, 4, CAST(0x4C350B00 AS Date), 6, N'the purpose of the loan is valid', N'Approved', N'Derek')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1169, 4, CAST(0x4C350B00 AS Date), 6, N'that ', N'Approved', N'Derek')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1202, 4, CAST(0x4C350B00 AS Date), 6, N'fdhg', N'Approved', N'Derek')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1237, 4, CAST(0x4C350B00 AS Date), 6, N'those ', N'Approved', N'Derek')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1163, 4, CAST(0x4C350B00 AS Date), 6, N'car was stolen from her ', N'Approved', N'Derek')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1197, 4, CAST(0x4C350B00 AS Date), 6, N'those ', N'Approved', N'Derek')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1256, 4, CAST(0x4C350B00 AS Date), 6, N'six months, she loved it, every minute of it.Until that day when he', N'Approved', N'Derek')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1223, 2, CAST(0x4C350B00 AS Date), 1, N'months, sh', N'Approved', N'Rogers')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1041, 5, CAST(0x4C350B00 AS Date), 8, N'hen her car was stolen from her office parking lot. Dietrich said poli', N'Approved', N'William')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1136, 5, CAST(0x4C350B00 AS Date), 8, N'at day when her car was stolen from her office parking lot. Dietrich said police g', N'Approved', N'William')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1114, 5, CAST(0x4C350B00 AS Date), 8, N'hen her car was stolen from her office parking lot. Dietrich said poli', N'Approved', N'William')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1097, 5, CAST(0x4C350B00 AS Date), 8, N'e six months, she loved it, every minute of it.Until that day when her car was stolen from her office parking lot. Dietrich said poli', N'Approved', N'William')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1127, 3, CAST(0x4C350B00 AS Date), 8, N', she', N'Approved', N'Morris')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1203, 5, CAST(0x4C350B00 AS Date), 8, N'Dietrich ', N'Approved', N'William')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1213, 5, CAST(0x4C350B00 AS Date), 8, N'Dietrich ', N'Approved', N'William')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1126, 5, CAST(0x4C350B00 AS Date), 8, N'Dietrich ', N'Approved', N'William')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1248, 4, CAST(0x4C350B00 AS Date), 6, N' ,m,m,m,n,, ,m ,,m ,, , ,', N'Approved', N'Derek')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1257, 4, CAST(0x4C350B00 AS Date), 6, N'police ', N'Approved', N'Derek')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1206, 2, CAST(0x4C350B00 AS Date), 1, N'olen from her office parking lot. Di', N'Approved', N'Rogers')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1221, 2, CAST(0x4C350B00 AS Date), 1, N'sdfgjkjhgf', N'Approved', N'Rogers')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1258, 4, CAST(0x4C350B00 AS Date), 6, N'at day when her car was stolen from her office parking lot. Dietrich', N'Approved', N'Derek')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1260, 4, CAST(0x4C350B00 AS Date), 6, N'that day when her car was stolen from her office parking lot. Dietric', N'Approved', N'Derek')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1253, 4, CAST(0x4C350B00 AS Date), 6, N'sad, she said. It took me a couple years to get over that. Then, last ', N'Approved', N'Derek')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1259, 4, CAST(0x4C350B00 AS Date), 6, N' said police gave her little hope, and told her that her beloved Corv', N'Approved', N'Derek')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1261, 4, CAST(0x4C350B00 AS Date), 6, N'y when her car was stolen from her office parking lot. Dietrich said po', N'Approved', N'Derek')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1276, 4, CAST(0x4C350B00 AS Date), 6, N'etrich said polic', N'Approved', N'Derek')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1277, 4, CAST(0x4C350B00 AS Date), 6, N'he said. It to', N'Approved', N'Derek')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1278, 4, CAST(0x4C350B00 AS Date), 6, N' her little ', N'Approved', N'Derek')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1129, 3, CAST(0x4C350B00 AS Date), 8, N'ver that. Then, last October, a call came out of the blue to the Georgia native, telling her that her car had been found in ', N'Approved', N'Morris')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1130, 3, CAST(0x4C350B00 AS Date), 8, N'ose six months, she loved it, every minute of it.Until that day when he', N'Approved', N'Morris')
+GO
+INSERT [dbo].[tbl_CreditAnalyst_approvedApplications] ([applicationID], [creditAnalystID], [creditAnalystApprovedDate], [supervisorID], [creditAnalystReason], [applicationStatus], [creditAnalystName]) VALUES (1138, 3, CAST(0x4C350B00 AS Date), 8, N'those six months, she loved it, every minute of it.Until that day when her car was stolen from her office parking lot. Dietrich said police', N'Approved', N'Morris')
+GO
+INSERT [dbo].[tbl_creditRisk_approvedApplications] ([ApplicationID], [mlcID], [creditRiskID], [creditRiskApprovedDate], [ApplicationStatus], [creditRiskReason], [creditRiskName]) VALUES (1183, 12, 10, CAST(0x4C350B00 AS Date), N'Rejected', N'oooooo', N'Miriam')
+GO
+INSERT [dbo].[tbl_creditRisk_approvedApplications] ([ApplicationID], [mlcID], [creditRiskID], [creditRiskApprovedDate], [ApplicationStatus], [creditRiskReason], [creditRiskName]) VALUES (1246, 12, 10, CAST(0x4C350B00 AS Date), N'Approved', N'', N'Miriam')
+GO
+SET IDENTITY_INSERT [dbo].[tbl_customer_Timestamp] ON 
+
+GO
+INSERT [dbo].[tbl_customer_Timestamp] ([id], [customerID], [userID], [reason], [lastdateOne], [lastdateTwo], [lastdateThree]) VALUES (2, N'29892245', 9, N'Loan Application', CAST(0x5A3A0B00 AS Date), CAST(0x5B950A00 AS Date), CAST(0x5B950A00 AS Date))
+GO
+INSERT [dbo].[tbl_customer_Timestamp] ([id], [customerID], [userID], [reason], [lastdateOne], [lastdateTwo], [lastdateThree]) VALUES (3, N'29892246', 9, N'Entry Record', CAST(0x543A0B00 AS Date), CAST(0x5B950A00 AS Date), CAST(0x5B950A00 AS Date))
+GO
+INSERT [dbo].[tbl_customer_Timestamp] ([id], [customerID], [userID], [reason], [lastdateOne], [lastdateTwo], [lastdateThree]) VALUES (4, N'2343454', 9, N'Loan Application', CAST(0x553A0B00 AS Date), CAST(0x5B950A00 AS Date), CAST(0x5B950A00 AS Date))
+GO
+INSERT [dbo].[tbl_customer_Timestamp] ([id], [customerID], [userID], [reason], [lastdateOne], [lastdateTwo], [lastdateThree]) VALUES (5, N'28753642', 9, N'Loan Application', CAST(0x553A0B00 AS Date), CAST(0x5B950A00 AS Date), CAST(0x5B950A00 AS Date))
+GO
+INSERT [dbo].[tbl_customer_Timestamp] ([id], [customerID], [userID], [reason], [lastdateOne], [lastdateTwo], [lastdateThree]) VALUES (6, N'223423', 9, N'Entry Record', CAST(0x593A0B00 AS Date), CAST(0x5B950A00 AS Date), CAST(0x5B950A00 AS Date))
+GO
+INSERT [dbo].[tbl_customer_Timestamp] ([id], [customerID], [userID], [reason], [lastdateOne], [lastdateTwo], [lastdateThree]) VALUES (7, N'29893345', 9, N'Entry Record', CAST(0x593A0B00 AS Date), CAST(0x5B950A00 AS Date), CAST(0x5B950A00 AS Date))
+GO
+INSERT [dbo].[tbl_customer_Timestamp] ([id], [customerID], [userID], [reason], [lastdateOne], [lastdateTwo], [lastdateThree]) VALUES (8, N'236735', 9, N'Entry Record', CAST(0x593A0B00 AS Date), CAST(0x5B950A00 AS Date), CAST(0x5B950A00 AS Date))
+GO
+INSERT [dbo].[tbl_customer_Timestamp] ([id], [customerID], [userID], [reason], [lastdateOne], [lastdateTwo], [lastdateThree]) VALUES (9, N'8765432', 9, N'Loan Application', CAST(0x5C3A0B00 AS Date), CAST(0x5B950A00 AS Date), CAST(0x5B950A00 AS Date))
+GO
+INSERT [dbo].[tbl_customer_Timestamp] ([id], [customerID], [userID], [reason], [lastdateOne], [lastdateTwo], [lastdateThree]) VALUES (10, N'24371123', 9, N'Entry Record', CAST(0x593A0B00 AS Date), CAST(0x5B950A00 AS Date), CAST(0x5B950A00 AS Date))
+GO
+INSERT [dbo].[tbl_customer_Timestamp] ([id], [customerID], [userID], [reason], [lastdateOne], [lastdateTwo], [lastdateThree]) VALUES (11, N'12690614', 9, N'Loan Application', CAST(0x5B3A0B00 AS Date), CAST(0x5B950A00 AS Date), CAST(0x5B950A00 AS Date))
+GO
+INSERT [dbo].[tbl_customer_Timestamp] ([id], [customerID], [userID], [reason], [lastdateOne], [lastdateTwo], [lastdateThree]) VALUES (12, N'222222', 9, N'Loan Application', CAST(0x5A3A0B00 AS Date), CAST(0x5B950A00 AS Date), CAST(0x5B950A00 AS Date))
+GO
+INSERT [dbo].[tbl_customer_Timestamp] ([id], [customerID], [userID], [reason], [lastdateOne], [lastdateTwo], [lastdateThree]) VALUES (13, N'333333', 9, N'Entry Record', CAST(0x5A3A0B00 AS Date), CAST(0x5B950A00 AS Date), CAST(0x5B950A00 AS Date))
+GO
+INSERT [dbo].[tbl_customer_Timestamp] ([id], [customerID], [userID], [reason], [lastdateOne], [lastdateTwo], [lastdateThree]) VALUES (14, N'8437984', 5, N'Entry Record', CAST(0x613A0B00 AS Date), CAST(0x5B950A00 AS Date), CAST(0x5B950A00 AS Date))
+GO
+SET IDENTITY_INSERT [dbo].[tbl_customer_Timestamp] OFF
+GO
+SET IDENTITY_INSERT [dbo].[tbl_customerCorporateTable] ON 
+
+GO
+INSERT [dbo].[tbl_customerCorporateTable] ([id], [name], [dateofregistration], [natureofbusiness], [telephone], [registrationnumber], [coi], [registeredoffice], [physicaladdress], [boxaddress], [email], [directorOne], [directorTwo], [directorThree], [timeStampID], [website]) VALUES (13, N'Datachip', N'2015-08-12', N'School', N'207846', N'AQW324', N'Kenya', N'Kenneth Mwiti', N'Westalands Muthithi RD', N'123 Westage', N'admin@datachip.com', N'24371123', N'', N'', NULL, N'www.com')
+GO
+SET IDENTITY_INSERT [dbo].[tbl_customerCorporateTable] OFF
+GO
+SET IDENTITY_INSERT [dbo].[tbl_customerIndividualTable] ON 
+
+GO
+INSERT [dbo].[tbl_customerIndividualTable] ([customerID], [surName], [firstName], [middleName], [dob], [idpassport], [gender], [maritalstatus], [mobile], [email], [address], [nationality], [creationDate], [branchcode], [timeStampID], [blackList]) VALUES (10, N'mwiti', N'john', N'kenneth', N'01/01/1950', N'12690614', N'Male', N'Single', N'0722802571', N'kenmwiti@datachip.co.ke', N'1138 - 00606 nairobi', N'Kenyan', N'8/25/2015 11:14:16 AM', 1, N'12690614', N'false')
+GO
+INSERT [dbo].[tbl_customerIndividualTable] ([customerID], [surName], [firstName], [middleName], [dob], [idpassport], [gender], [maritalstatus], [mobile], [email], [address], [nationality], [creationDate], [branchcode], [timeStampID], [blackList]) VALUES (11, N'obama', N'barrack', N'hussein', N'02/10/2010', N'222222', N'Male', N'Single', N'0722888888', N'obama@gmail.com', N'324234', N'Kenyan', N'8/25/2015 12:47:44 PM', 1, N'222222', N'true')
+GO
+INSERT [dbo].[tbl_customerIndividualTable] ([customerID], [surName], [firstName], [middleName], [dob], [idpassport], [gender], [maritalstatus], [mobile], [email], [address], [nationality], [creationDate], [branchcode], [timeStampID], [blackList]) VALUES (7, N'Walace', N'Murithi', N'Munene', N'2015-08-10', N'236735', N'Male', N'Divorced', N'9087654566', N'walace@gmail.com', N'876546546', N'Ugandan', N'8/24/2015 8:53:49 AM', 1, N'236735', N'false')
+GO
+INSERT [dbo].[tbl_customerIndividualTable] ([customerID], [surName], [firstName], [middleName], [dob], [idpassport], [gender], [maritalstatus], [mobile], [email], [address], [nationality], [creationDate], [branchcode], [timeStampID], [blackList]) VALUES (9, N'Kenneth', N'Mwiti', N'Munene', N'2004-06-16', N'24371123', N'Male', N'Married', N'0708 457 625', N'mwiti@gmail.com', N'14534 Meru', N'Ugandan', N'8/24/2015 2:12:21 PM', 1, N'24371123', N'false')
+GO
+INSERT [dbo].[tbl_customerIndividualTable] ([customerID], [surName], [firstName], [middleName], [dob], [idpassport], [gender], [maritalstatus], [mobile], [email], [address], [nationality], [creationDate], [branchcode], [timeStampID], [blackList]) VALUES (6, N'Derek', N'Mugambi', N'Mwirigi', N'1992-08-12', N'29892245', N'Male', N'Single', N'0706828557', N'derekmwirigi@hotmail.com', N'1481 Meru', N'Kenyan', N'8/24/2015 8:29:44 AM', 1, N'29893345', N'false')
+GO
+INSERT [dbo].[tbl_customerIndividualTable] ([customerID], [surName], [firstName], [middleName], [dob], [idpassport], [gender], [maritalstatus], [mobile], [email], [address], [nationality], [creationDate], [branchcode], [timeStampID], [blackList]) VALUES (12, N'john', N'musyimi', N'mutua', N'01/02/1960', N'333333', N'Male', N'Single', N'0733333333', N'john@yahoo.com', N'34235345', N'Ugandan', N'8/25/2015 12:50:17 PM', 1, N'333333', N'false')
+GO
+INSERT [dbo].[tbl_customerIndividualTable] ([customerID], [surName], [firstName], [middleName], [dob], [idpassport], [gender], [maritalstatus], [mobile], [email], [address], [nationality], [creationDate], [branchcode], [timeStampID], [blackList]) VALUES (13, N'muhoro', N'erastus', N'kariuki', N'2015-09-16', N'8437984', N'Male', N'Single', N'0722898787', N'kenmwiti@gmail.com', N'12345 00100 nairobi', N'Kenyan', N'9/1/2015 7:31:37 PM', 1, N'8437984', N'false')
+GO
+INSERT [dbo].[tbl_customerIndividualTable] ([customerID], [surName], [firstName], [middleName], [dob], [idpassport], [gender], [maritalstatus], [mobile], [email], [address], [nationality], [creationDate], [branchcode], [timeStampID], [blackList]) VALUES (8, N'Fridah', N'Lusesi', N'Wanja', N'2015-08-13', N'8765432', N'Female', N'Single', N'098765', N'lusesi@gmail.com', N'5643', N'Ugandan', N'8/24/2015 9:10:23 AM', 1, N'8765432', N'false')
+GO
+SET IDENTITY_INSERT [dbo].[tbl_customerIndividualTable] OFF
+GO
+INSERT [dbo].[tbl_departments] ([departmentID], [department_name], [department_entries], [status]) VALUES (1, N'Credit Analyst', 3, N'true')
+GO
+INSERT [dbo].[tbl_departments] ([departmentID], [department_name], [department_entries], [status]) VALUES (2, N'Supervisor', 4, N'true')
+GO
+INSERT [dbo].[tbl_departments] ([departmentID], [department_name], [department_entries], [status]) VALUES (3, N'Relationship Officer', 3, N'true')
+GO
+INSERT [dbo].[tbl_departments] ([departmentID], [department_name], [department_entries], [status]) VALUES (4, N'MLC', 4, N'true')
+GO
+INSERT [dbo].[tbl_departments] ([departmentID], [department_name], [department_entries], [status]) VALUES (5, N'Credit Admin', 5, N'false')
+GO
+INSERT [dbo].[tbl_departments] ([departmentID], [department_name], [department_entries], [status]) VALUES (6, N'Credit Risk', 1, N'true')
+GO
+INSERT [dbo].[tbl_departments] ([departmentID], [department_name], [department_entries], [status]) VALUES (7, N'Admin', 1, N'true')
+GO
+SET IDENTITY_INSERT [dbo].[tbl_leads] ON 
+
+GO
+INSERT [dbo].[tbl_leads] ([LeadID], [LeadEntries]) VALUES (1, 3)
+GO
+INSERT [dbo].[tbl_leads] ([LeadID], [LeadEntries]) VALUES (2, 2)
+GO
+SET IDENTITY_INSERT [dbo].[tbl_leads] OFF
+GO
+INSERT [dbo].[tbl_loans_mode] ([LoaneemodeTitle], [Loanee_modeID]) VALUES (N'Limited Company', 101)
+GO
+INSERT [dbo].[tbl_loans_mode] ([LoaneemodeTitle], [Loanee_modeID]) VALUES (N'Employed', 102)
+GO
+INSERT [dbo].[tbl_loans_mode] ([LoaneemodeTitle], [Loanee_modeID]) VALUES (N'Self Employed', 103)
+GO
+INSERT [dbo].[tbl_loanTypes] ([LoanTitle], [LoanID], [Entries]) VALUES (N'Mortgage', 1001, 23)
+GO
+INSERT [dbo].[tbl_loanTypes] ([LoanTitle], [LoanID], [Entries]) VALUES (N'Car Loan', 1002, 12)
+GO
+INSERT [dbo].[tbl_loanTypes] ([LoanTitle], [LoanID], [Entries]) VALUES (N'Personal', 1003, 9)
+GO
+INSERT [dbo].[tbl_loanTypes] ([LoanTitle], [LoanID], [Entries]) VALUES (N'Asset Finance', 1004, 16)
+GO
+INSERT [dbo].[tbl_Mlc_approvedApplications] ([applicationID], [mlcID], [creditAdminID], [mlcApprovedDate], [applicationStatus], [mlcReason], [mlcName]) VALUES (1155, 12, 13, CAST(0x4C350B00 AS Date), N'Approved', N'hhh', N'Rehab')
+GO
+INSERT [dbo].[tbl_Mlc_approvedApplications] ([applicationID], [mlcID], [creditAdminID], [mlcApprovedDate], [applicationStatus], [mlcReason], [mlcName]) VALUES (1157, 12, 13, CAST(0x4C350B00 AS Date), N'Approved', N'', N'Rehab')
+GO
+INSERT [dbo].[tbl_Mlc_approvedApplications] ([applicationID], [mlcID], [creditAdminID], [mlcApprovedDate], [applicationStatus], [mlcReason], [mlcName]) VALUES (1159, 12, 13, CAST(0x4C350B00 AS Date), N'Approved', N'', N'Rehab')
+GO
+INSERT [dbo].[tbl_Mlc_approvedApplications] ([applicationID], [mlcID], [creditAdminID], [mlcApprovedDate], [applicationStatus], [mlcReason], [mlcName]) VALUES (1158, 12, 13, CAST(0x4C350B00 AS Date), N'Approved', N'', N'Rehab')
+GO
+INSERT [dbo].[tbl_Mlc_approvedApplications] ([applicationID], [mlcID], [creditAdminID], [mlcApprovedDate], [applicationStatus], [mlcReason], [mlcName]) VALUES (1160, 12, 13, CAST(0x4C350B00 AS Date), N'Rejected', N'dddd', N'Rehab')
+GO
+INSERT [dbo].[tbl_Mlc_approvedApplications] ([applicationID], [mlcID], [creditAdminID], [mlcApprovedDate], [applicationStatus], [mlcReason], [mlcName]) VALUES (1164, 12, 13, CAST(0x4C350B00 AS Date), N'Approved', N'sss', N'Rehab')
+GO
+INSERT [dbo].[tbl_Mlc_approvedApplications] ([applicationID], [mlcID], [creditAdminID], [mlcApprovedDate], [applicationStatus], [mlcReason], [mlcName]) VALUES (1162, 12, 13, CAST(0x4C350B00 AS Date), N'Approved', N'fff', N'Rehab')
+GO
+INSERT [dbo].[tbl_Mlc_approvedApplications] ([applicationID], [mlcID], [creditAdminID], [mlcApprovedDate], [applicationStatus], [mlcReason], [mlcName]) VALUES (1166, 12, 13, CAST(0x4C350B00 AS Date), N'Rejected', N'you are right', N'Rehab')
+GO
+INSERT [dbo].[tbl_Mlc_approvedApplications] ([applicationID], [mlcID], [creditAdminID], [mlcApprovedDate], [applicationStatus], [mlcReason], [mlcName]) VALUES (1180, 12, 13, CAST(0x4C350B00 AS Date), N'Approved', N'ccc', N'Rehab')
+GO
+INSERT [dbo].[tbl_Mlc_approvedApplications] ([applicationID], [mlcID], [creditAdminID], [mlcApprovedDate], [applicationStatus], [mlcReason], [mlcName]) VALUES (1181, 12, 13, CAST(0x4C350B00 AS Date), N'Approved', N'', N'Rehab')
+GO
+INSERT [dbo].[tbl_Mlc_approvedApplications] ([applicationID], [mlcID], [creditAdminID], [mlcApprovedDate], [applicationStatus], [mlcReason], [mlcName]) VALUES (1182, 12, 13, CAST(0x4C350B00 AS Date), N'Rejected', N'', N'Rehab')
+GO
+INSERT [dbo].[tbl_Mlc_approvedApplications] ([applicationID], [mlcID], [creditAdminID], [mlcApprovedDate], [applicationStatus], [mlcReason], [mlcName]) VALUES (1188, 12, 13, CAST(0x4C350B00 AS Date), N'Rejected', N'', N'Rehab')
+GO
+INSERT [dbo].[tbl_Mlc_approvedApplications] ([applicationID], [mlcID], [creditAdminID], [mlcApprovedDate], [applicationStatus], [mlcReason], [mlcName]) VALUES (1242, 12, 13, CAST(0x4C350B00 AS Date), N'Approved', N'', N'Rehab')
+GO
+SET IDENTITY_INSERT [dbo].[tbl_Mortage_Table] ON 
+
+GO
+INSERT [dbo].[tbl_Mortage_Table] ([id], [plotNo], [estateTel], [estateName], [EstateNo], [town], [occupierName], [occupierAddress], [occupierTel], [kObtained], [agreement], [purchasePrice], [personalSaving], [disposal], [amountSpent], [otherCash], [totalCash], [MortageSeco], [reason], [mortagee], [propertStatus], [years], [details], [ratableVal], [whereMortaged], [whereTitleDeedIs], [guestMortage], [walls], [roof], [nearTown]) VALUES (1, N'23443443', N'2373773', N'Ruiru', N'36636', N'Nairobi', N'Sam Mugambi', N'224525 Kiambu', N'60149000', N'Muranga', N'Yes', N'20000', N'10000000000', N'1000000', 10000000, 99999, 7878899000, N'Yes', N'sd', N'dd', N'Free', N'10 Years', N'aaa', 102990000, N'No', N'Tharaka Nithi', N'Yes', N'Blocks', N'Iron Sheets', N'Thika')
+GO
+INSERT [dbo].[tbl_Mortage_Table] ([id], [plotNo], [estateTel], [estateName], [EstateNo], [town], [occupierName], [occupierAddress], [occupierTel], [kObtained], [agreement], [purchasePrice], [personalSaving], [disposal], [amountSpent], [otherCash], [totalCash], [MortageSeco], [reason], [mortagee], [propertStatus], [years], [details], [ratableVal], [whereMortaged], [whereTitleDeedIs], [guestMortage], [walls], [roof], [nearTown]) VALUES (2, N'23432', N'324', N'324', N'234', N'234', N'324', N'234', N'234', N'234', N'No', N'234', N'234', N'324', 324, 324, 234, N'No', N'234', N'324', N'Lease', N'324', N'324', 324, N'No', N'234', N'No', N'234', N'234', N'32432')
+GO
+SET IDENTITY_INSERT [dbo].[tbl_Mortage_Table] OFF
+GO
+INSERT [dbo].[tbl_Nationality] ([NationalityID], [Nationality]) VALUES (101, N'Kenyan')
+GO
+INSERT [dbo].[tbl_Nationality] ([NationalityID], [Nationality]) VALUES (102, N'Tanzanian')
+GO
+INSERT [dbo].[tbl_Nationality] ([NationalityID], [Nationality]) VALUES (103, N'Ugandan')
+GO
+INSERT [dbo].[tbl_Nationality] ([NationalityID], [Nationality]) VALUES (104, N'Ghanian')
+GO
+INSERT [dbo].[tbl_SelfEmployedPersons] ([NatureBusiness], [AddressB], [TimeLengthEstablishd], [TimeLengthControl], [NameAuditor], [Evidence]) VALUES (N'', N'', N'', N'', N'', N'')
+GO
+INSERT [dbo].[tbl_SelfEmployedPersons] ([NatureBusiness], [AddressB], [TimeLengthEstablishd], [TimeLengthControl], [NameAuditor], [Evidence]) VALUES (N'Agricultural', N'21', N'21 days', N'21 days', N'Rogers', N'23')
+GO
+INSERT [dbo].[tbl_SelfEmployedPersons] ([NatureBusiness], [AddressB], [TimeLengthEstablishd], [TimeLengthControl], [NameAuditor], [Evidence]) VALUES (N'Programming', N'21 Magumoni', N'23 years', N'13 years', N'K-Rep Bank', N'343443 Mombasa')
+GO
+INSERT [dbo].[tbl_SelfEmployedPersons] ([NatureBusiness], [AddressB], [TimeLengthEstablishd], [TimeLengthControl], [NameAuditor], [Evidence]) VALUES (N'Engineering', N'4355355 Nairobi', N'30 years', N'61 months', N'Morris', N'273773 kameu')
+GO
+INSERT [dbo].[tbl_SelfEmployedPersons] ([NatureBusiness], [AddressB], [TimeLengthEstablishd], [TimeLengthControl], [NameAuditor], [Evidence]) VALUES (N'Technology', N'44444444', N'300 years', N'66 years and 3 months', N'Derek', N'222 Nairobi')
+GO
+INSERT [dbo].[tbl_SelfEmployedPersons] ([NatureBusiness], [AddressB], [TimeLengthEstablishd], [TimeLengthControl], [NameAuditor], [Evidence]) VALUES (N'Agricultural', N'21', N'555 days', N'455 years', N'Derek', N'')
+GO
+INSERT [dbo].[tbl_SelfEmployedPersons] ([NatureBusiness], [AddressB], [TimeLengthEstablishd], [TimeLengthControl], [NameAuditor], [Evidence]) VALUES (N'rrr', N'44444444', N'8000', N'61 months', N'Rogers', N'222 Nairobi')
+GO
+INSERT [dbo].[tbl_Settings] ([CustomersUploadsPathRaw], [CustomersUploadsPathResized], [UsersUploadsPathRaw], [UsersUploadsPathResized], [ApplicationsUploadsPathResized], [ApplicationsUploadsPathRaw], [CustomersUploadsReadPathResized]) VALUES (N'C:\\TatUploads\\Customers\\Raw\\', N'C:\\TatUploads\\Customers\\Resized\\', N'C:\\TatUploads\\Users\Raw\\', N'C:\\TatUploads\\Users\Resized\\', N'C:\\TatUploads\\Applications\Raw\\', N'C:\\TatUploads\\Applications\Resized\\', N'C:\TatUploads\Customers\Resized\')
+GO
+INSERT [dbo].[tbl_Sex] ([SexID], [Sex]) VALUES (101, N'Male')
+GO
+INSERT [dbo].[tbl_Sex] ([SexID], [Sex]) VALUES (102, N'Female')
+GO
+INSERT [dbo].[tbl_Sex] ([SexID], [Sex]) VALUES (103, N'Others')
+GO
+INSERT [dbo].[tbl_Status] ([StatusID], [Status]) VALUES (100, N'Single')
+GO
+INSERT [dbo].[tbl_Status] ([StatusID], [Status]) VALUES (101, N'Married')
+GO
+INSERT [dbo].[tbl_Status] ([StatusID], [Status]) VALUES (102, N'Divorced')
+GO
+INSERT [dbo].[tbl_Status] ([StatusID], [Status]) VALUES (103, N'Seperated')
+GO
+INSERT [dbo].[tbl_Supervisor_approvedApplications] ([applicationID], [supervisorID], [creditRiskID], [supervisorApprovedDate], [applicationStatus], [supervisorReason], [supervisorName]) VALUES (1145, 6, 4, CAST(0x4C350B00 AS Date), N'Rejected', N'asdasdasd', N'Rose')
+GO
+INSERT [dbo].[tbl_Supervisor_approvedApplications] ([applicationID], [supervisorID], [creditRiskID], [supervisorApprovedDate], [applicationStatus], [supervisorReason], [supervisorName]) VALUES (1147, 6, 4, CAST(0x4C350B00 AS Date), N'Rejected', N'', N'Rose')
+GO
+INSERT [dbo].[tbl_Supervisor_approvedApplications] ([applicationID], [supervisorID], [creditRiskID], [supervisorApprovedDate], [applicationStatus], [supervisorReason], [supervisorName]) VALUES (1141, 0, 4, CAST(0x4C350B00 AS Date), N'Rejected', N'sgtrewtrrewtre', NULL)
+GO
+INSERT [dbo].[tbl_Supervisor_approvedApplications] ([applicationID], [supervisorID], [creditRiskID], [supervisorApprovedDate], [applicationStatus], [supervisorReason], [supervisorName]) VALUES (1139, 1, 2, CAST(0x4C350B00 AS Date), N'Approved', N'ggdfd', N'Daniel')
+GO
+INSERT [dbo].[tbl_Supervisor_approvedApplications] ([applicationID], [supervisorID], [creditRiskID], [supervisorApprovedDate], [applicationStatus], [supervisorReason], [supervisorName]) VALUES (1139, 1, NULL, CAST(0x4C350B00 AS Date), N'Approved', N'ggdfd', N'Daniel')
+GO
+INSERT [dbo].[tbl_Supervisor_approvedApplications] ([applicationID], [supervisorID], [creditRiskID], [supervisorApprovedDate], [applicationStatus], [supervisorReason], [supervisorName]) VALUES (1142, 1, 2, CAST(0x4C350B00 AS Date), N'Approved', N'hehe', N'Daniel')
+GO
+INSERT [dbo].[tbl_Supervisor_approvedApplications] ([applicationID], [supervisorID], [creditRiskID], [supervisorApprovedDate], [applicationStatus], [supervisorReason], [supervisorName]) VALUES (1146, 1, 2, CAST(0x4C350B00 AS Date), N'Approved', N'tytytyy', N'Daniel')
+GO
+INSERT [dbo].[tbl_Supervisor_approvedApplications] ([applicationID], [supervisorID], [creditRiskID], [supervisorApprovedDate], [applicationStatus], [supervisorReason], [supervisorName]) VALUES (1142, 1, NULL, CAST(0x4C350B00 AS Date), N'Approved', N'hehe', N'Daniel')
+GO
+INSERT [dbo].[tbl_Supervisor_approvedApplications] ([applicationID], [supervisorID], [creditRiskID], [supervisorApprovedDate], [applicationStatus], [supervisorReason], [supervisorName]) VALUES (1142, 1, NULL, CAST(0x4C350B00 AS Date), N'Approved', N'hehe', N'Daniel')
+GO
+INSERT [dbo].[tbl_Supervisor_approvedApplications] ([applicationID], [supervisorID], [creditRiskID], [supervisorApprovedDate], [applicationStatus], [supervisorReason], [supervisorName]) VALUES (1142, 1, NULL, CAST(0x4C350B00 AS Date), N'Approved', N'hehe', N'Daniel')
+GO
+INSERT [dbo].[tbl_Supervisor_approvedApplications] ([applicationID], [supervisorID], [creditRiskID], [supervisorApprovedDate], [applicationStatus], [supervisorReason], [supervisorName]) VALUES (1142, 1, NULL, CAST(0x4C350B00 AS Date), N'Approved', N'hehe', N'Daniel')
+GO
+INSERT [dbo].[tbl_Supervisor_approvedApplications] ([applicationID], [supervisorID], [creditRiskID], [supervisorApprovedDate], [applicationStatus], [supervisorReason], [supervisorName]) VALUES (1142, 1, NULL, CAST(0x4C350B00 AS Date), N'Approved', N'hehe', N'Daniel')
+GO
+INSERT [dbo].[tbl_Supervisor_approvedApplications] ([applicationID], [supervisorID], [creditRiskID], [supervisorApprovedDate], [applicationStatus], [supervisorReason], [supervisorName]) VALUES (1149, 1, 2, CAST(0x4C350B00 AS Date), N'Approved', N'hnb', N'Daniel')
+GO
+INSERT [dbo].[tbl_Supervisor_approvedApplications] ([applicationID], [supervisorID], [creditRiskID], [supervisorApprovedDate], [applicationStatus], [supervisorReason], [supervisorName]) VALUES (1171, 1, 10, CAST(0x4C350B00 AS Date), N'Approved', N'xxx', N'Daniel')
+GO
+INSERT [dbo].[tbl_Supervisor_approvedApplications] ([applicationID], [supervisorID], [creditRiskID], [supervisorApprovedDate], [applicationStatus], [supervisorReason], [supervisorName]) VALUES (1174, 1, 10, CAST(0x4C350B00 AS Date), N'Approved', N'zzzA', N'Daniel')
+GO
+INSERT [dbo].[tbl_Supervisor_approvedApplications] ([applicationID], [supervisorID], [creditRiskID], [supervisorApprovedDate], [applicationStatus], [supervisorReason], [supervisorName]) VALUES (1152, 6, NULL, CAST(0x4C350B00 AS Date), N'Rejected', N'those six months, she loved it, every minute of it.Until that day when her car was stolen from her office parking lot. Dietrich said ', N'Rose')
+GO
+INSERT [dbo].[tbl_Supervisor_approvedApplications] ([applicationID], [supervisorID], [creditRiskID], [supervisorApprovedDate], [applicationStatus], [supervisorReason], [supervisorName]) VALUES (1150, 6, NULL, CAST(0x4C350B00 AS Date), N'Approved', N'those six months, she loved it, every minute of it.Until that day ', N'Rose')
+GO
+INSERT [dbo].[tbl_Supervisor_approvedApplications] ([applicationID], [supervisorID], [creditRiskID], [supervisorApprovedDate], [applicationStatus], [supervisorReason], [supervisorName]) VALUES (1161, 6, NULL, CAST(0x4C350B00 AS Date), N'Approved', N'ssfsdf', N'Rose')
+GO
+INSERT [dbo].[tbl_Supervisor_approvedApplications] ([applicationID], [supervisorID], [creditRiskID], [supervisorApprovedDate], [applicationStatus], [supervisorReason], [supervisorName]) VALUES (1111, 8, 11, CAST(0x4C350B00 AS Date), N'Rejected', N'qwewqe', N'Lucy')
+GO
+INSERT [dbo].[tbl_Supervisor_approvedApplications] ([applicationID], [supervisorID], [creditRiskID], [supervisorApprovedDate], [applicationStatus], [supervisorReason], [supervisorName]) VALUES (1108, 8, 11, CAST(0x4C350B00 AS Date), N'Rejected', N'asaS', N'Lucy')
+GO
+INSERT [dbo].[tbl_Supervisor_approvedApplications] ([applicationID], [supervisorID], [creditRiskID], [supervisorApprovedDate], [applicationStatus], [supervisorReason], [supervisorName]) VALUES (1186, 6, NULL, CAST(0x4C350B00 AS Date), N'Rejected', N'asASas', N'Rose')
+GO
+INSERT [dbo].[tbl_Supervisor_approvedApplications] ([applicationID], [supervisorID], [creditRiskID], [supervisorApprovedDate], [applicationStatus], [supervisorReason], [supervisorName]) VALUES (1172, 6, NULL, CAST(0x4C350B00 AS Date), N'Rejected', N'aSas', N'Rose')
+GO
+INSERT [dbo].[tbl_Supervisor_approvedApplications] ([applicationID], [supervisorID], [creditRiskID], [supervisorApprovedDate], [applicationStatus], [supervisorReason], [supervisorName]) VALUES (1167, 6, NULL, CAST(0x4C350B00 AS Date), N'Approved', N'police gave her little hope,', N'Rose')
+GO
+INSERT [dbo].[tbl_Supervisor_approvedApplications] ([applicationID], [supervisorID], [creditRiskID], [supervisorApprovedDate], [applicationStatus], [supervisorReason], [supervisorName]) VALUES (1212, 6, NULL, CAST(0x4C350B00 AS Date), N'Approved', N'asdas', N'Rose')
+GO
+INSERT [dbo].[tbl_Supervisor_approvedApplications] ([applicationID], [supervisorID], [creditRiskID], [supervisorApprovedDate], [applicationStatus], [supervisorReason], [supervisorName]) VALUES (1193, 6, NULL, CAST(0x4C350B00 AS Date), N'Approved', N'ed Cor', N'Rose')
+GO
+INSERT [dbo].[tbl_Supervisor_approvedApplications] ([applicationID], [supervisorID], [creditRiskID], [supervisorApprovedDate], [applicationStatus], [supervisorReason], [supervisorName]) VALUES (1232, 6, NULL, CAST(0x4C350B00 AS Date), N'Approved', N'Die', N'Rose')
+GO
+INSERT [dbo].[tbl_Supervisor_approvedApplications] ([applicationID], [supervisorID], [creditRiskID], [supervisorApprovedDate], [applicationStatus], [supervisorReason], [supervisorName]) VALUES (1165, 6, NULL, CAST(0x4C350B00 AS Date), N'Approved', N'valid', N'Rose')
+GO
+INSERT [dbo].[tbl_System_users_Log] ([userID], [loginstatus]) VALUES (4, N'false')
+GO
+INSERT [dbo].[tbl_System_users_Log] ([userID], [loginstatus]) VALUES (2, N'false')
+GO
+INSERT [dbo].[tbl_System_users_Log] ([userID], [loginstatus]) VALUES (3, N'false')
+GO
+INSERT [dbo].[tbl_System_users_Log] ([userID], [loginstatus]) VALUES (1, N'false')
+GO
+INSERT [dbo].[tbl_System_users_Log] ([userID], [loginstatus]) VALUES (8, N'true')
+GO
+INSERT [dbo].[tbl_System_users_Log] ([userID], [loginstatus]) VALUES (5, N'false')
+GO
+INSERT [dbo].[tbl_System_users_Log] ([userID], [loginstatus]) VALUES (6, N'false')
+GO
+INSERT [dbo].[tbl_System_users_Log] ([userID], [loginstatus]) VALUES (9, N'true')
+GO
+INSERT [dbo].[tbl_System_users_Log] ([userID], [loginstatus]) VALUES (10, N'false')
+GO
+INSERT [dbo].[tbl_System_users_Log] ([userID], [loginstatus]) VALUES (11, N'false')
+GO
+INSERT [dbo].[tbl_System_users_Log] ([userID], [loginstatus]) VALUES (7, N'false')
+GO
+INSERT [dbo].[tbl_System_users_Log] ([userID], [loginstatus]) VALUES (12, N'false')
+GO
+INSERT [dbo].[tbl_System_users_Log] ([userID], [loginstatus]) VALUES (13, N'false')
+GO
+INSERT [dbo].[tbl_System_users_Log] ([userID], [loginstatus]) VALUES (46, N'false')
+GO
+INSERT [dbo].[tbl_System_users_Log] ([userID], [loginstatus]) VALUES (44, N'true')
+GO
+SET IDENTITY_INSERT [dbo].[tbl_users] ON 
+
+GO
+INSERT [dbo].[tbl_users] ([ID], [userIDPassport], [department_id], [first_name], [middle_name], [last_name], [user_name], [user_password], [employee_number], [leave_date_from], [leave_date_to], [email], [branch_name], [phone_number], [gender], [user_status]) VALUES (3, 232432, 7, N'john', N'kenneth', N'mwiti', N'kenmwiti', N'kenmwiti', 3, CAST(0xB4390B00 AS Date), CAST(0xC0390B00 AS Date), N'ken@gmai.com', N'TRM Thika Road Mall', N'072277666', N'M', N'OFF')
+GO
+INSERT [dbo].[tbl_users] ([ID], [userIDPassport], [department_id], [first_name], [middle_name], [last_name], [user_name], [user_password], [employee_number], [leave_date_from], [leave_date_to], [email], [branch_name], [phone_number], [gender], [user_status]) VALUES (4, 89799, 1, N'Benson', N'Mugo', N'Githeyj', N'ben', N'bbbb', 8, CAST(0x693A0B00 AS Date), CAST(0x783A0B00 AS Date), N'benson@datachip.co.ke', N'TRM Thika Road Mall', N'07987665', N'M', N'ON')
+GO
+INSERT [dbo].[tbl_users] ([ID], [userIDPassport], [department_id], [first_name], [middle_name], [last_name], [user_name], [user_password], [employee_number], [leave_date_from], [leave_date_to], [email], [branch_name], [phone_number], [gender], [user_status]) VALUES (5, 2341234, 3, N'Rogers', N'Munene', N'Njeru', N'rogers', N'rogers', 9, CAST(0x613A0B00 AS Date), CAST(0x613A0B00 AS Date), N'rogers@gmail.com', N'TRM Thika Road Mall', N'07665554', N'M', N'OFF')
+GO
+SET IDENTITY_INSERT [dbo].[tbl_users] OFF
+GO
+INSERT [dbo].[tbl_users_copy] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (1, 2, 1, N'Daniel', N'waweru', N'james', 230067, CAST(0xAB350B00 AS Date), CAST(0xB2350B00 AS Date), N'wamai@hh.com', N'1234567890', N'male', N'on')
+GO
+INSERT [dbo].[tbl_users_copy] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (2, 1, 1, N'Rogers', N'Munene', N'Kimaita', 1254256, CAST(0xAD350B00 AS Date), CAST(0xAD350B00 AS Date), N'rogers@me.code', N'249+6495', N'Male', N'off')
+GO
+INSERT [dbo].[tbl_users_copy] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (3, 1, 1, N'Morris', N'Ngugi', N'Mbugua', 153463, CAST(0xAD350B00 AS Date), CAST(0xAD350B00 AS Date), N'morris@me.code', N'5464621', N'Male', N'on')
+GO
+INSERT [dbo].[tbl_users_copy] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (4, 7, 1, N'Derek', N'Mugambi', N'Mwirigi', 2451464, CAST(0xAD350B00 AS Date), CAST(0xAD350B00 AS Date), N'derekmwirigi@hotmail.com', N'245656', N'Male', N'off')
+GO
+INSERT [dbo].[tbl_users_copy] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (5, 1, 1, N'William', N'Matata', N'Makwekwe', 451212, CAST(0x46350B00 AS Date), CAST(0x46350B00 AS Date), N'william@me.code', N'454545', N'Male', N'on')
+GO
+INSERT [dbo].[tbl_users_copy] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (6, 2, 2, N'Rose', N'Bellah', N'Othiambo', 4545, CAST(0xA6350B00 AS Date), CAST(0xA6350B00 AS Date), N'rose@me.code', N'2465654', N'Female', N'off')
+GO
+INSERT [dbo].[tbl_users_copy] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (7, 1, 1, N'Ken', N'David', N'Joshua', 524645, CAST(0xA4350B00 AS Date), CAST(0xA4350B00 AS Date), N'david@me.code', N'2455656', N'Male', N'off')
+GO
+INSERT [dbo].[tbl_users_copy] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (8, 2, 2, N'Lucy', N'Makeba', N'Mandela', 4526335, CAST(0xA4350B00 AS Date), CAST(0xA4350B00 AS Date), N'mandela@me.code', N'235654', N'Female', N'off')
+GO
+INSERT [dbo].[tbl_users_copy] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (9, 3, 3, N'Edwin', N'Barack', N'Blades', 1235569, CAST(0xEB350B00 AS Date), CAST(0xEB350B00 AS Date), N'vamps@code.me', N'123456', N'Male', N'on')
+GO
+INSERT [dbo].[tbl_users_copy] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (10, 6, 3, N'Miriam', N'Musyimi', N'Alias', 1456535, CAST(0xEB350B00 AS Date), CAST(0xEB350B00 AS Date), N'miriam@me.codes', N'455889', N'Female', N'on')
+GO
+INSERT [dbo].[tbl_users_copy] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (11, 3, 3, N'Professa', N'Hamo', N'Kinuthia', 451546, CAST(0xEB350B00 AS Date), CAST(0xEB350B00 AS Date), N'hamo@me.codes', N'452576', N'Male', N'on')
+GO
+INSERT [dbo].[tbl_users_copy] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (12, 4, 4, N'Rehab', N'Nyawira', N'Mwenda', 4333, CAST(0xEB350B00 AS Date), CAST(0xEB350B00 AS Date), N'rehab@me.code', N'3774747', N'female', N'off')
+GO
+INSERT [dbo].[tbl_users_copy] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (13, 6, 5, N'Wamalwa', N'wanyama', N'silv', 6433, CAST(0xEB350B00 AS Date), CAST(0xEB350B00 AS Date), N'wamalwa@me.code', N'45555', N'Male', N'off')
+GO
+INSERT [dbo].[tbl_users_copy] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (0, 34, 45, N'MARY', N'JONES', N'BETH', 2, CAST(0x643A0B00 AS Date), CAST(0x69370B00 AS Date), N'JONES@GMAIL.COM', N'0733334455', N'F', N'ON')
+GO
+INSERT [dbo].[tbl_users_copy] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (46, 32, 67, N'MARYY', N'JONESS', N'BETHS', 2, CAST(0x643A0B00 AS Date), CAST(0x69370B00 AS Date), N'JONES@GMAIL.COM', N'0733334455', N'F', N'ON')
+GO
+INSERT [dbo].[tbl_users_copy] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (44, 1, 1, N'reuben', N'martin', N'joel', 40, CAST(0x69370B00 AS Date), CAST(0x88370B00 AS Date), N'joel@yahoo.com', N'0733454545', N'M', N'OFF')
+GO
+INSERT [dbo].[tbl_users_CreditAnalysts] ([creditAnalystID], [supervisorID]) VALUES (4, 6)
+GO
+INSERT [dbo].[tbl_users_CreditAnalysts] ([creditAnalystID], [supervisorID]) VALUES (3, 8)
+GO
+INSERT [dbo].[tbl_users_CreditAnalysts] ([creditAnalystID], [supervisorID]) VALUES (2, 1)
+GO
+INSERT [dbo].[tbl_users_CreditAnalysts] ([creditAnalystID], [supervisorID]) VALUES (5, 8)
+GO
+INSERT [dbo].[tbl_users_CreditRisk] ([creditRiskID], [mlcID]) VALUES (10, 12)
+GO
+INSERT [dbo].[tbl_users_MLC] ([mlcID], [creditAdminID]) VALUES (12, 13)
+GO
+INSERT [dbo].[tbl_users_Supervisors] ([supervisorID], [CreditRiskID]) VALUES (1, 10)
+GO
+INSERT [dbo].[tbl_users_Supervisors] ([supervisorID], [CreditRiskID]) VALUES (8, 11)
+GO
+SET IDENTITY_INSERT [dbo].[tbl_users1] ON 
+
+GO
+INSERT [dbo].[tbl_users1] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (1, 2, 1, N'Daniel', N'waweru', N'james', 230067, CAST(0xAB350B00 AS Date), CAST(0xB2350B00 AS Date), N'wamai@hh.com', N'1234567890', N'male', N'on')
+GO
+INSERT [dbo].[tbl_users1] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (2, 1, 1, N'Rogers', N'Munene', N'Kimaita', 1254256, CAST(0xAD350B00 AS Date), CAST(0xAD350B00 AS Date), N'rogers@me.code', N'249+6495', N'Male', N'off')
+GO
+INSERT [dbo].[tbl_users1] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (3, 1, 1, N'Morris', N'Ngugi', N'Mbugua', 153463, CAST(0xAD350B00 AS Date), CAST(0xAD350B00 AS Date), N'morris@me.code', N'5464621', N'Male', N'on')
+GO
+INSERT [dbo].[tbl_users1] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (4, 7, 1, N'Derek', N'Mugambi', N'Mwirigi', 2451464, CAST(0xAD350B00 AS Date), CAST(0xAD350B00 AS Date), N'derekmwirigi@hotmail.com', N'245656', N'Male', N'off')
+GO
+INSERT [dbo].[tbl_users1] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (5, 1, 1, N'William', N'Matata', N'Makwekwe', 451212, CAST(0x46350B00 AS Date), CAST(0x46350B00 AS Date), N'william@me.code', N'454545', N'Male', N'on')
+GO
+INSERT [dbo].[tbl_users1] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (6, 2, 2, N'Rose', N'Bellah', N'Othiambo', 4545, CAST(0xA6350B00 AS Date), CAST(0xA6350B00 AS Date), N'rose@me.code', N'2465654', N'Female', N'off')
+GO
+INSERT [dbo].[tbl_users1] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (7, 1, 1, N'Ken', N'David', N'Joshua', 524645, CAST(0xA4350B00 AS Date), CAST(0xA4350B00 AS Date), N'david@me.code', N'2455656', N'Male', N'off')
+GO
+INSERT [dbo].[tbl_users1] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (8, 2, 2, N'Lucy', N'Makeba', N'Mandela', 4526335, CAST(0xA4350B00 AS Date), CAST(0xA4350B00 AS Date), N'mandela@me.code', N'235654', N'Female', N'off')
+GO
+INSERT [dbo].[tbl_users1] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (9, 3, 3, N'Edwin', N'Barack', N'Blades', 1235569, CAST(0xEB350B00 AS Date), CAST(0xEB350B00 AS Date), N'vamps@code.me', N'123456', N'Male', N'on')
+GO
+INSERT [dbo].[tbl_users1] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (10, 6, 3, N'Miriam', N'Musyimi', N'Alias', 1456535, CAST(0xEB350B00 AS Date), CAST(0xEB350B00 AS Date), N'miriam@me.codes', N'455889', N'Female', N'on')
+GO
+INSERT [dbo].[tbl_users1] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (11, 3, 3, N'Professa', N'Hamo', N'Kinuthia', 451546, CAST(0xEB350B00 AS Date), CAST(0xEB350B00 AS Date), N'hamo@me.codes', N'452576', N'Male', N'on')
+GO
+INSERT [dbo].[tbl_users1] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (12, 4, 4, N'Rehab', N'Nyawira', N'Mwenda', 4333, CAST(0xEB350B00 AS Date), CAST(0xEB350B00 AS Date), N'rehab@me.code', N'3774747', N'female', N'off')
+GO
+INSERT [dbo].[tbl_users1] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (13, 6, 5, N'Wamalwa', N'wanyama', N'silv', 6433, CAST(0xEB350B00 AS Date), CAST(0xEB350B00 AS Date), N'wamalwa@me.code', N'45555', N'Male', N'off')
+GO
+INSERT [dbo].[tbl_users1] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (14, 34, 45, N'MARY', N'JONES', N'BETH', 2, CAST(0x643A0B00 AS Date), CAST(0x69370B00 AS Date), N'JONES@GMAIL.COM', N'0733334455', N'F', N'ON')
+GO
+INSERT [dbo].[tbl_users1] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (15, 32, 67, N'MARYY', N'JONESS', N'BETHS', 2, CAST(0x643A0B00 AS Date), CAST(0x69370B00 AS Date), N'JONES@GMAIL.COM', N'0733334455', N'F', N'ON')
+GO
+INSERT [dbo].[tbl_users1] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (16, 1, 1, N'reuben', N'martin', N'joel', 40, CAST(0x69370B00 AS Date), CAST(0x88370B00 AS Date), N'joel@yahoo.com', N'0733454545', N'M', N'OFF')
+GO
+INSERT [dbo].[tbl_users1] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (17, 1, 1, N'david', N'kithinji', N'mwiti', 40, CAST(0x69370B00 AS Date), CAST(0x88370B00 AS Date), N'david@datachip.co.ke', N'0733456789', N'M', N'OFF')
+GO
+INSERT [dbo].[tbl_users1] ([userID], [departmentID], [user_department], [first_name], [middle_name], [last_name], [employee_number], [leave_date_from], [leave_date_to], [email], [phone_number], [gender], [user_status]) VALUES (18, 1, 1, N'Joshua', N'Muriithi', N'Mwiti', 40, CAST(0x69370B00 AS Date), CAST(0x88370B00 AS Date), N'joshua@gmail.com', N'345566566', N'M', N'OFF')
+GO
+SET IDENTITY_INSERT [dbo].[tbl_users1] OFF
+GO
+ALTER TABLE [dbo].[tbl_customerCorporateTable]  WITH CHECK ADD FOREIGN KEY([timeStampID])
+REFERENCES [dbo].[tbl_timeStamp] ([timeStampID])
+GO
+ALTER TABLE [dbo].[tbl_customers]  WITH CHECK ADD FOREIGN KEY([leadID])
+REFERENCES [dbo].[tbl_leads] ([LeadID])
+GO

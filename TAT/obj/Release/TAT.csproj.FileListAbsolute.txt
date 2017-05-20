@@ -1,0 +1,17 @@
+C:\Users\Derek_D\OneDrive\TAT\TAT\bin\TAT.dll.config
+C:\Users\Derek_D\OneDrive\TAT\TAT\bin\TAT.dll
+C:\Users\Derek_D\OneDrive\TAT\TAT\bin\TAT.pdb
+C:\Users\Derek_D\OneDrive\TAT\TAT\obj\Release\TAT.dll
+C:\Users\Derek_D\OneDrive\TAT\TAT\obj\Release\TAT.pdb
+E:\TAT\TAT\bin\TAT.dll.config
+E:\TAT\TAT\bin\TAT.dll
+E:\TAT\TAT\bin\TAT.pdb
+E:\TAT\TAT\obj\Release\TAT.csprojResolveAssemblyReference.cache
+E:\TAT\TAT\obj\Release\TAT.dll
+E:\TAT\TAT\obj\Release\TAT.pdb
+D:\Intership\New folder (3)\TAT\TAT\bin\TAT.dll.config
+D:\Intership\New folder (3)\TAT\TAT\bin\TAT.dll
+D:\Intership\New folder (3)\TAT\TAT\bin\TAT.pdb
+D:\Intership\New folder (3)\TAT\TAT\obj\Release\TAT.csprojResolveAssemblyReference.cache
+D:\Intership\New folder (3)\TAT\TAT\obj\Release\TAT.dll
+D:\Intership\New folder (3)\TAT\TAT\obj\Release\TAT.pdb

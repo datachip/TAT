@@ -1,0 +1,172 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+This file is used by the publish/package process of your Web project. You can customize the behavior of this process
+by editing this MSBuild file. In order to learn more about this please visit http://go.microsoft.com/fwlink/?LinkID=208121. 
+-->
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <TimeStampOfAssociatedLegacyPublishXmlFile />
+    <_PublishTargetUrl>E:\hf</_PublishTargetUrl>
+  </PropertyGroup>
+  <ItemGroup>
+    <File Include="bin/TAT.dll">
+      <publishTime>08/10/2015 00:16:10</publishTime>
+    </File>
+    <File Include="css/bootstrap.min.css">
+      <publishTime>07/23/2015 21:43:43</publishTime>
+    </File>
+    <File Include="css/component.css">
+      <publishTime>07/23/2015 21:43:43</publishTime>
+    </File>
+    <File Include="css/default.css">
+      <publishTime>07/23/2015 21:43:43</publishTime>
+    </File>
+    <File Include="css/font-awesome.min.css">
+      <publishTime>07/23/2015 21:43:43</publishTime>
+    </File>
+    <File Include="css/templatemo-style.css">
+      <publishTime>08/05/2015 11:10:03</publishTime>
+    </File>
+    <File Include="fonts/fontawesome-webfont.eot">
+      <publishTime>07/23/2015 21:43:43</publishTime>
+    </File>
+    <File Include="fonts/fontawesome-webfont.svg">
+      <publishTime>07/23/2015 21:43:43</publishTime>
+    </File>
+    <File Include="fonts/fontawesome-webfont.ttf">
+      <publishTime>07/23/2015 21:43:43</publishTime>
+    </File>
+    <File Include="fonts/fontawesome-webfont.woff">
+      <publishTime>07/23/2015 21:43:43</publishTime>
+    </File>
+    <File Include="fonts/fontawesome-webfont.woff2">
+      <publishTime>07/23/2015 21:43:43</publishTime>
+    </File>
+    <File Include="fonts/FontAwesome.otf">
+      <publishTime>07/23/2015 21:43:43</publishTime>
+    </File>
+    <File Include="frmAllApplicants.aspx">
+      <publishTime>08/09/2015 23:58:39</publishTime>
+    </File>
+    <File Include="frmChooseCustomer.aspx">
+      <publishTime>08/09/2015 23:16:15</publishTime>
+    </File>
+    <File Include="frmCompaniesSection.aspx">
+      <publishTime>08/10/2015 00:00:08</publishTime>
+    </File>
+    <File Include="frmCreditAnalyst.aspx">
+      <publishTime>07/24/2015 03:17:21</publishTime>
+    </File>
+    <File Include="frmCreditAnalystApplicationSelect.aspx">
+      <publishTime>08/05/2015 15:42:32</publishTime>
+    </File>
+    <File Include="frmCreditRisk.aspx">
+      <publishTime>08/05/2015 14:48:25</publishTime>
+    </File>
+    <File Include="frmCreditRiskApplicationSelect.aspx">
+      <publishTime>07/24/2015 08:37:08</publishTime>
+    </File>
+    <File Include="frmCSR.aspx">
+      <publishTime>08/06/2015 13:23:22</publishTime>
+    </File>
+    <File Include="frmCustomer.aspx">
+      <publishTime>08/05/2015 16:30:17</publishTime>
+    </File>
+    <File Include="frmEmployedPersons.aspx">
+      <publishTime>08/10/2015 00:00:45</publishTime>
+    </File>
+    <File Include="frmFiles.aspx">
+      <publishTime>08/06/2015 14:57:25</publishTime>
+    </File>
+    <File Include="frmLogin.aspx">
+      <publishTime>07/24/2015 01:55:40</publishTime>
+    </File>
+    <File Include="frmNewApplication.aspx">
+      <publishTime>08/09/2015 23:58:20</publishTime>
+    </File>
+    <File Include="frmParticulars.aspx">
+      <publishTime>08/10/2015 00:03:00</publishTime>
+    </File>
+    <File Include="frmSelfEmployedPersons.aspx">
+      <publishTime>08/10/2015 00:12:17</publishTime>
+    </File>
+    <File Include="frmSupervisor.aspx">
+      <publishTime>07/24/2015 04:48:43</publishTime>
+    </File>
+    <File Include="frmSupervisorApplicationSelect.aspx">
+      <publishTime>07/24/2015 08:34:34</publishTime>
+    </File>
+    <File Include="js/.DS_Store">
+      <publishTime>07/23/2015 21:43:43</publishTime>
+    </File>
+    <File Include="js/classie.js">
+      <publishTime>07/23/2015 21:43:43</publishTime>
+    </File>
+    <File Include="js/css-filters-polyfill.js">
+      <publishTime>07/23/2015 21:43:43</publishTime>
+    </File>
+    <File Include="js/cssParser.js">
+      <publishTime>07/23/2015 21:43:43</publishTime>
+    </File>
+    <File Include="js/modalEffects.js">
+      <publishTime>07/23/2015 21:43:43</publishTime>
+    </File>
+    <File Include="js/modernizr.custom.js">
+      <publishTime>07/23/2015 21:43:43</publishTime>
+    </File>
+    <File Include="popUp/css/templatemo-style.css">
+      <publishTime>07/24/2015 04:18:27</publishTime>
+    </File>
+    <File Include="popUp/fonts/fontawesome-webfont.eot">
+      <publishTime>07/24/2015 04:18:28</publishTime>
+    </File>
+    <File Include="popUp/fonts/fontawesome-webfont.svg">
+      <publishTime>07/24/2015 04:18:28</publishTime>
+    </File>
+    <File Include="popUp/fonts/fontawesome-webfont.ttf">
+      <publishTime>07/24/2015 04:18:28</publishTime>
+    </File>
+    <File Include="popUp/fonts/fontawesome-webfont.woff">
+      <publishTime>07/24/2015 04:18:28</publishTime>
+    </File>
+    <File Include="popUp/fonts/fontawesome-webfont.woff2">
+      <publishTime>07/24/2015 04:18:28</publishTime>
+    </File>
+    <File Include="popUp/fonts/FontAwesome.otf">
+      <publishTime>07/24/2015 04:18:28</publishTime>
+    </File>
+    <File Include="popUp/js/.DS_Store">
+      <publishTime>07/24/2015 04:18:28</publishTime>
+    </File>
+    <File Include="popUp/js/classie.js">
+      <publishTime>07/24/2015 04:18:28</publishTime>
+    </File>
+    <File Include="popUp/js/css-filters-polyfill.js">
+      <publishTime>07/24/2015 04:18:28</publishTime>
+    </File>
+    <File Include="popUp/js/cssParser.js">
+      <publishTime>07/24/2015 04:18:28</publishTime>
+    </File>
+    <File Include="popUp/js/modalEffects.js">
+      <publishTime>07/24/2015 04:18:28</publishTime>
+    </File>
+    <File Include="popUp/js/modernizr.custom.js">
+      <publishTime>07/24/2015 04:18:28</publishTime>
+    </File>
+    <File Include="popUp/style.css">
+      <publishTime>07/24/2015 04:18:28</publishTime>
+    </File>
+    <File Include="PrecompiledApp.config">
+      <publishTime>08/10/2015 00:16:11</publishTime>
+    </File>
+    <File Include="Supervisor.aspx">
+      <publishTime>08/05/2015 14:17:25</publishTime>
+    </File>
+    <File Include="Supervisor_CA.aspx">
+      <publishTime>08/05/2015 16:47:54</publishTime>
+    </File>
+    <File Include="Web.config">
+      <publishTime>08/10/2015 00:13:57</publishTime>
+    </File>
+  </ItemGroup>
+</Project>
